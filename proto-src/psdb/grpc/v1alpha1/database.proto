@@ -1,0 +1,10 @@
+syntax = "proto3";
+package psdb.grpc.v1alpha1;
+
+import "psdb/data/v1alpha1/data.proto";
+
+option go_package = "github.com/planetscale/psdb/types/psdb/grpc/v1alpha1;psdbgrpcv1alpha1";
+
+service Database {
+  rpc CreateSession(psdb.data.v1alpha1.CreateSessionRequest) returns (psdb.data.v1alpha1.CreateSessionResponse) {}
+}
