@@ -58,9 +58,7 @@ func dialPool(ctx context.Context, addr string, o *options.ClientOptions) (ConnP
 }
 
 func dial(ctx context.Context, addr string, o *options.ClientOptions) (*grpc.ClientConn, error) {
-	colonPos := strings.LastIndex(addr, ":")
-	if colonPos == -1 {
-		colonPos = len(addr)
+	if colonPos := strings.LastIndex(addr, ":"); colonPos == -1 {
 		if o.TLSConfig != nil {
 			addr += ":443"
 		} else {
