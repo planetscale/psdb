@@ -1,0 +1,19 @@
+---
+- - :permit
+  - Apache 2.0
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-05-23 23:56:45.667827000 Z
+- - :permit
+  - New BSD
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-05-23 23:56:50.382440000 Z
+- - :permit
+  - MIT
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-05-23 23:56:55.336383000 Z

@@ -1,0 +1,51 @@
+agents:
+  queue: public
+
+env:
+  DOCKER_INLINE_CACHE: "1"
+  DOCKER_BUILDKIT: "1"
+  BUILDKIT_PROGRESS: plain
+  COMPOSE_FILE: .buildkite/docker-compose.yml
+  COMPOSE_DOCKER_CLI_BUILD: "1"
+
+steps:
+  - label: ":docker: Build"
+    plugins:
+      - docker-compose#v3.9.0:
+          build: ci
+
+  - wait
+
+  - name: tests
+    label: Tests
+    command: "make tests"
+    plugins:
+      - docker-compose#v3.9.0:
+          run: ci
+
+  - name: Formatting
+    label: Formatting
+    command: "make clean-proto && make proto && make fmt && git diff --exit-code"
+    plugins:
+      - docker-compose#v3.9.0:
+          run: ci
+
+  - name: gomod
+    label: "Make sure go.sum is up to date"
+    command: "go mod tidy && git diff --exit-code"
+    plugins:
+      - docker-compose#v3.9.0:
+          run: ci
+
+  - name: lint
+    label: Lint
+    command: "make lint"
+    plugins:
+      - docker-compose#v3.9.0:
+          run: ci
+
+  - name: Verify dependency licenses
+    command: "license_finder"
+    plugins:
+      - docker-compose#v3.9.0:
+          run: ci

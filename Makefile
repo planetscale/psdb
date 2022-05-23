@@ -118,7 +118,7 @@ $(PSDB_TWIRP_V1ALPHA1)/database.pb.go: $(PROTO_TOOLS) proto-src/psdb/twirp/v1alp
 	$(BIN)/protoc \
 	  --plugin=protoc-gen-go=$(BIN)/protoc-gen-go \
 	  --plugin=protoc-gen-go-vtproto=$(BIN)/protoc-gen-go-vtproto \
-	  --plugin=protoc-gen-go-twirp=$(BIN)/protoc-gen-go-twirp \
+	  --plugin=protoc-gen-twirp=$(BIN)/protoc-gen-twirp \
 	  --go_out=$(PSDB_PROTO_OUT) \
 	  --go-vtproto_out=$(PSDB_PROTO_OUT) \
 	  --twirp_out=$(PSDB_PROTO_OUT) \
@@ -145,6 +145,9 @@ lint-staticcheck: $(BIN)/staticcheck
 lint-enumcheck: $(BIN)/enumcheck
 	$(BIN)/enumcheck ./...
 
+tests:
+	go test -v ./...
+
 update:
 	go get -v -u ./...
 	go mod tidy
@@ -155,4 +158,5 @@ update:
 .PHONY: proto tools update \
 		clean clean-proto clean-bin \
 		fmt fmt-go \
-		lint lint-vet lint-staticcheck lint-enumcheck
+		lint lint-vet lint-staticcheck lint-enumcheck \
+		tests
