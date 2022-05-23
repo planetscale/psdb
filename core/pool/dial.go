@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package grpc supports network connections to GRPC servers.
-// This package is not intended for use by end developers. Use the
-// google.golang.org/api/option package to configure API clients.
-
 // This is highly based on the connection pooler found within
 // Google's SDK. It's highly modified to stand in as our SDK and
 // has nothing Google specific, all PlanetScale specific.
