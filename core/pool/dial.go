@@ -24,8 +24,8 @@ import (
 	"github.com/planetscale/psdb/core/resolver"
 )
 
-// 16MB is the max message size on Vitess
-const maxMessageSize = 16 * 1024 * 1024 * 1024
+// Slightly larger than the max message size allowed by vtgate.
+const maxMessageSize = 100 * 1024 * 1024
 
 func Dial(ctx context.Context, addr string, opts ...options.ClientOption) (ConnPool, error) {
 	return dialPool(ctx, addr, processOpts(opts))
