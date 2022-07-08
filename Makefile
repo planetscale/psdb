@@ -5,7 +5,6 @@ PSDB_PROTO_ROOT := $(PSDB_PROTO_OUT)/psdb
 PSDB_DATA_V1 := $(PSDB_PROTO_ROOT)/data/v1
 PSDB_DATA_V1ALPHA1 := $(PSDB_PROTO_ROOT)/data/v1alpha1
 PSDB_GRPC_V1ALPHA1 := $(PSDB_PROTO_ROOT)/grpc/v1alpha1
-PSDB_TWIRP_V1ALPHA1 := $(PSDB_PROTO_ROOT)/twirp/v1alpha1
 
 BIN := bin
 
@@ -14,8 +13,7 @@ OS := $(shell uname)
 proto: \
 	$(PSDB_DATA_V1)/data.pb.go \
 	$(PSDB_DATA_V1ALPHA1)/data.pb.go \
-	$(PSDB_GRPC_V1ALPHA1)/database.pb.go \
-	$(PSDB_TWIRP_V1ALPHA1)/database.pb.go
+	$(PSDB_GRPC_V1ALPHA1)/database.pb.go
 
 clean: clean-proto clean-bin
 
@@ -41,9 +39,6 @@ $(BIN)/protoc-gen-go-grpc: | $(BIN)
 
 $(BIN)/protoc-gen-go-vtproto: | $(BIN)
 	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto
-
-$(BIN)/protoc-gen-twirp: | $(BIN)
-	$(TOOL_INSTALL) github.com/twitchtv/twirp/protoc-gen-twirp
 
 $(BIN)/gofumpt: | $(BIN)
 	$(TOOL_INSTALL) mvdan.cc/gofumpt
@@ -71,7 +66,7 @@ $(BIN)/protoc: | $(BIN)
 	mv tmp-protoc/bin/protoc $(BIN)/
 	rm -rf tmp-protoc
 
-PROTO_TOOLS := $(BIN)/protoc $(BIN)/protoc-gen-go $(BIN)/protoc-gen-go-grpc $(BIN)/protoc-gen-go-vtproto $(BIN)/protoc-gen-twirp
+PROTO_TOOLS := $(BIN)/protoc $(BIN)/protoc-gen-go $(BIN)/protoc-gen-go-grpc $(BIN)/protoc-gen-go-vtproto
 tools: $(PROTO_TOOLS) $(BIN)/gofumpt $(BIN)/staticcheck $(BIN)/enumcheck
 
 $(PSDB_DATA_V1)/data.pb.go: $(PROTO_TOOLS) proto-src/psdb/data/v1/data.proto | $(PSDB_PROTO_OUT)
@@ -113,21 +108,6 @@ $(PSDB_GRPC_V1ALPHA1)/database.pb.go: $(PROTO_TOOLS) proto-src/psdb/grpc/v1alpha
 	  --go-vtproto_opt=paths=source_relative \
 	  -I proto-src \
 	  proto-src/psdb/grpc/v1alpha1/database.proto
-
-$(PSDB_TWIRP_V1ALPHA1)/database.pb.go: $(PROTO_TOOLS) proto-src/psdb/twirp/v1alpha1/database.proto | $(PSDB_PROTO_OUT)
-	$(BIN)/protoc \
-	  --plugin=protoc-gen-go=$(BIN)/protoc-gen-go \
-	  --plugin=protoc-gen-go-vtproto=$(BIN)/protoc-gen-go-vtproto \
-	  --plugin=protoc-gen-twirp=$(BIN)/protoc-gen-twirp \
-	  --go_out=$(PSDB_PROTO_OUT) \
-	  --go-vtproto_out=$(PSDB_PROTO_OUT) \
-	  --twirp_out=$(PSDB_PROTO_OUT) \
-	  --go_opt=paths=source_relative \
-	  --go-vtproto_opt=features=marshal+unmarshal+size \
-	  --go-vtproto_opt=paths=source_relative \
-	  --twirp_opt=paths=source_relative \
-	  -I proto-src \
-	  proto-src/psdb/twirp/v1alpha1/database.proto
 
 fmt: fmt-go
 
