@@ -97,7 +97,7 @@ func dial(ctx context.Context, addr string, o *options.ClientOptions) (*grpc.Cli
 	}
 
 	if o.AddrRefreshInterval > 0 || o.AddrPrefix != "" {
-		addr = fmt.Sprintf("%s:///%s?refresh=%s&prefix=%s", resolver.SchemeName, addr, o.AddrRefreshInterval, o.AddrPrefix)
+		addr = fmt.Sprintf("%s:///%s?refresh=%s&prefix=%s&resolver=%s", resolver.SchemeName, addr, o.AddrRefreshInterval, o.AddrPrefix, o.ResolverAddress)
 	}
 
 	dialOpts = append(dialOpts, grpc.WithDefaultCallOptions(callOpts...))

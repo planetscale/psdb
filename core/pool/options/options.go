@@ -25,6 +25,7 @@ type ClientOptions struct {
 	ExtraDialOptions    []grpc.DialOption
 	ExtraCallOptions    []grpc.CallOption
 	TLSConfig           *tls.Config
+	ResolverAddress     string
 }
 
 func WithConnectionPool(size int) ClientOption {
@@ -131,6 +132,16 @@ func (w *withTLSConfig) Apply(o *ClientOptions) {
 
 func WithDefaultTLSConfig() ClientOption {
 	return WithTLSConfig(DefaultTLSConfig())
+}
+
+func WithResolverAddress(addr string) withResolverAddress {
+	return withResolverAddress(addr)
+}
+
+type withResolverAddress string
+
+func (w withResolverAddress) Apply(o *ClientOptions) {
+	o.ResolverAddress = string(w)
 }
 
 func DefaultClientOptions() *ClientOptions {
