@@ -73,13 +73,14 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn, bopts re
 	opts := target.URL.Query()
 	refreshInterval := forceDuration(getOr(opts, "refresh", "0s"))
 	prefix := netip.MustParsePrefix(getOr(opts, "prefix", "0.0.0.0/0"))
+	resolverAddr := getOr(opts, "resolver", "")
 
 	if refreshInterval < 0 {
 		return nil, errNegativeRefresh
 	}
 
 	// fall back to normal DNS resolver if no refreshing or filtering is wanted
-	if refreshInterval == 0 && prefix == catchallPrefix {
+	if refreshInterval == 0 && prefix == catchallPrefix && resolverAddr == "" {
 		return resolver.Get("dns").Build(target, cc, bopts)
 	}
 
@@ -102,15 +103,27 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn, bopts re
 
 	ctx, cancel := context.WithCancel(context.Background())
 	d := &dnsResolver{
-		ctx:     ctx,
-		cancel:  cancel,
-		cc:      cc,
-		rn:      make(chan struct{}, 1),
-		host:    host,
-		port:    port,
-		refresh: refreshInterval,
-		prefix:  prefix,
+		ctx:      ctx,
+		cancel:   cancel,
+		cc:       cc,
+		rn:       make(chan struct{}, 1),
+		host:     host,
+		port:     port,
+		refresh:  refreshInterval,
+		prefix:   prefix,
+		resolver: net.DefaultResolver,
 	}
+
+	if resolverAddr != "" {
+		d.resolver = &net.Resolver{
+			PreferGo: true,
+			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+				var dialer net.Dialer
+				return dialer.DialContext(ctx, network, resolverAddr)
+			},
+		}
+	}
+
 	d.wg.Add(1)
 	go d.watcher()
 	return d, nil
@@ -131,6 +144,8 @@ type dnsResolver struct {
 	port    string
 	refresh time.Duration
 	prefix  netip.Prefix
+
+	resolver *net.Resolver
 }
 
 func (r *dnsResolver) ResolveNow(resolver.ResolveNowOptions) {
@@ -203,7 +218,7 @@ func (r *dnsResolver) lookup() (*resolver.State, error) {
 }
 
 func (r *dnsResolver) lookupHost() ([]resolver.Address, error) {
-	addrs, err := net.DefaultResolver.LookupHost(r.ctx, r.host)
+	addrs, err := r.resolver.LookupHost(r.ctx, r.host)
 	if err != nil {
 		err = handleDNSError(err, "A")
 		return nil, err
