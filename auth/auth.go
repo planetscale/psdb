@@ -2,12 +2,10 @@ package auth
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"strings"
 
 	"github.com/segmentio/asm/base64"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -56,20 +54,6 @@ func (a *Authorization) PasswordLength() int {
 	}
 	panic("unknown AuthType")
 }
-
-func (a *Authorization) CallOption() grpc.CallOption {
-	return grpc.PerRPCCredentials(a)
-}
-
-func (a *Authorization) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
-	return map[string]string{
-		"authorization": a.authType.String() + " " + a.headerValue,
-	}, nil
-}
-
-// Needs to always be false becuase grpc doesn't actually know we're using TLS
-// since we wrap the socket ourselves. Maybe rethink this to use TransportCredentials?
-func (a *Authorization) RequireTransportSecurity() bool { return false }
 
 func NewBasicAuth(username, password string) *Authorization {
 	return &Authorization{
