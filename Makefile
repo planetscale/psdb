@@ -3,17 +3,18 @@ gomod := github.com/planetscale/psdb
 PSDB_PROTO_OUT := types
 PSDB_PROTO_ROOT := $(PSDB_PROTO_OUT)/psdb
 PSDB_DATA_V1 := $(PSDB_PROTO_ROOT)/data/v1
-PSDB_DATA_V1ALPHA1 := $(PSDB_PROTO_ROOT)/data/v1alpha1
-PSDB_GRPC_V1ALPHA1 := $(PSDB_PROTO_ROOT)/grpc/v1alpha1
+PSDB_V1ALPHA1 := $(PSDB_PROTO_ROOT)/v1alpha1
+
+PROTOC_VERSION=21.3
 
 BIN := bin
 
-OS := $(shell uname)
+UNAME_OS := $(shell uname -s)
+UNAME_ARCH := $(shell uname -m)
 
 proto: \
 	$(PSDB_DATA_V1)/data.pb.go \
-	$(PSDB_DATA_V1ALPHA1)/data.pb.go \
-	$(PSDB_GRPC_V1ALPHA1)/database.pb.go
+	$(PSDB_V1ALPHA1)/database.pb.go
 
 clean: clean-proto clean-bin
 
@@ -34,8 +35,8 @@ TOOL_INSTALL := cd tools && env GOBIN=$(PWD)/$(BIN) go install
 $(BIN)/protoc-gen-go: | $(BIN)
 	$(TOOL_INSTALL) google.golang.org/protobuf/cmd/protoc-gen-go
 
-$(BIN)/protoc-gen-go-grpc: | $(BIN)
-	$(TOOL_INSTALL) google.golang.org/grpc/cmd/protoc-gen-go-grpc
+$(BIN)/protoc-gen-connect-go: | $(BIN)
+	$(TOOL_INSTALL) github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go
 
 $(BIN)/protoc-gen-go-vtproto: | $(BIN)
 	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto
@@ -49,24 +50,32 @@ $(BIN)/staticcheck: | $(BIN)
 $(BIN)/enumcheck: | $(BIN)
 	$(TOOL_INSTALL) loov.dev/enumcheck
 
-PROTOC_VERSION=3.20.1
-PROTOC_ARCH=x86_64
-ifeq ($(OS),Linux)
-	PROTOC_PLATFORM := linux
+ifeq ($(UNAME_OS),Darwin)
+PROTOC_OS := osx
+ifeq ($(UNAME_ARCH),arm64)
+PROTOC_ARCH := aarch_64
+else
+PROTOC_ARCH := x86_64
 endif
-ifeq ($(OS),Darwin)
-	PROTOC_PLATFORM := osx
+endif
+ifeq ($(UNAME_OS),Linux)
+PROTOC_OS = linux
+ifeq ($(UNAME_ARCH),aarch64)
+PROTOC_ARCH := aarch_64
+else
+PROTOC_ARCH := $(UNAME_ARCH)
+endif
 endif
 
 $(BIN)/protoc: | $(BIN)
 	rm -rf tmp-protoc
 	mkdir -p tmp-protoc
-	wget -O tmp-protoc/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM)-$(PROTOC_ARCH).zip
+	wget -O tmp-protoc/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_OS)-$(PROTOC_ARCH).zip
 	unzip -d tmp-protoc tmp-protoc/protoc.zip
 	mv tmp-protoc/bin/protoc $(BIN)/
 	rm -rf tmp-protoc
 
-PROTO_TOOLS := $(BIN)/protoc $(BIN)/protoc-gen-go $(BIN)/protoc-gen-go-grpc $(BIN)/protoc-gen-go-vtproto
+PROTO_TOOLS := $(BIN)/protoc $(BIN)/protoc-gen-go $(BIN)/protoc-gen-connect-go $(BIN)/protoc-gen-go-vtproto
 tools: $(PROTO_TOOLS) $(BIN)/gofumpt $(BIN)/staticcheck $(BIN)/enumcheck
 
 $(PSDB_DATA_V1)/data.pb.go: $(PROTO_TOOLS) proto-src/psdb/data/v1/data.proto | $(PSDB_PROTO_OUT)
@@ -81,33 +90,20 @@ $(PSDB_DATA_V1)/data.pb.go: $(PROTO_TOOLS) proto-src/psdb/data/v1/data.proto | $
 	  -I proto-src \
 	  proto-src/psdb/data/v1/data.proto
 
-$(PSDB_DATA_V1ALPHA1)/data.pb.go: $(PROTO_TOOLS) proto-src/psdb/data/v1alpha1/data.proto | $(PSDB_PROTO_OUT)
+$(PSDB_V1ALPHA1)/database.pb.go: $(PROTO_TOOLS) proto-src/psdb/v1alpha1/database.proto | $(PSDB_PROTO_OUT)
 	$(BIN)/protoc \
 	  --plugin=protoc-gen-go=$(BIN)/protoc-gen-go \
 	  --plugin=protoc-gen-go-vtproto=$(BIN)/protoc-gen-go-vtproto \
+	  --plugin=protoc-gen-connect-go=$(BIN)/protoc-gen-connect-go \
 	  --go_out=$(PSDB_PROTO_OUT) \
 	  --go-vtproto_out=$(PSDB_PROTO_OUT) \
+	  --connect-go_out=$(PSDB_PROTO_OUT) \
 	  --go_opt=paths=source_relative \
 	  --go-vtproto_opt=features=marshal+unmarshal+size \
 	  --go-vtproto_opt=paths=source_relative \
+	  --connect-go_opt=paths=source_relative \
 	  -I proto-src \
-	  proto-src/psdb/data/v1alpha1/data.proto
-
-$(PSDB_GRPC_V1ALPHA1)/database.pb.go: $(PROTO_TOOLS) proto-src/psdb/grpc/v1alpha1/database.proto | $(PSDB_PROTO_OUT)
-	$(BIN)/protoc \
-	  --plugin=protoc-gen-go=$(BIN)/protoc-gen-go \
-	  --plugin=protoc-gen-go-grpc=$(BIN)/protoc-gen-go-grpc \
-	  --plugin=protoc-gen-go-vtproto=$(BIN)/protoc-gen-go-vtproto \
-	  --go_out=$(PSDB_PROTO_OUT) \
-	  --go-grpc_out=$(PSDB_PROTO_OUT) \
-	  --go-vtproto_out=$(PSDB_PROTO_OUT) \
-	  --go_opt=paths=source_relative \
-	  --go-grpc_opt=paths=source_relative \
-	  --go-grpc_opt=require_unimplemented_servers=false \
-	  --go-vtproto_opt=features=marshal+unmarshal+size \
-	  --go-vtproto_opt=paths=source_relative \
-	  -I proto-src \
-	  proto-src/psdb/grpc/v1alpha1/database.proto
+	  proto-src/psdb/v1alpha1/database.proto
 
 fmt: fmt-go
 
