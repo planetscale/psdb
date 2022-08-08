@@ -50,7 +50,7 @@ func New[T any](
 		cOpts = append(cOpts, cfg.extraClientOptions...)
 	}
 
-	return fn(newClient(cfg.tlsConfig), "https://"+addr, cOpts...)
+	return fn(cfg.httpClient, "https://"+addr, cOpts...)
 }
 
 type ClientPool[T any] struct {
@@ -73,7 +73,7 @@ func (p *ClientPool[T]) Get(addr string) T {
 
 	// create a new one outside a lock, worst case, we create multiple, last one wins
 	// and the others are GC'd
-	client = p.fn(newClient(p.cfg.tlsConfig), "https://"+addr, p.clientOptions...)
+	client = p.fn(p.cfg.httpClient, "https://"+addr, p.clientOptions...)
 
 	// lock the map to store the client
 	p.poolMu.Lock()
@@ -134,7 +134,7 @@ func defaultClientOptions() []connect.ClientOption {
 	}
 }
 
-func newClient(tlsConfig *tls.Config) connect.HTTPClient {
+func defaultHTTPClient(tlsConfig *tls.Config) connect.HTTPClient {
 	if tlsConfig == nil {
 		tlsConfig = DefaultTLSConfig()
 	}
