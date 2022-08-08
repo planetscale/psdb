@@ -13,12 +13,16 @@ import (
 type config struct {
 	tlsConfig          *tls.Config
 	extraClientOptions []connect.ClientOption
+	httpClient         connect.HTTPClient
 }
 
 func configFromOptions(opts ...Option) *config {
 	cfg := &config{}
 	for _, o := range opts {
 		o(cfg)
+	}
+	if cfg.httpClient == nil {
+		cfg.httpClient = defaultHTTPClient(cfg.tlsConfig)
 	}
 	return cfg
 }
@@ -28,6 +32,12 @@ type Option func(*config)
 func WithTLSConfig(cfg *tls.Config) Option {
 	return func(c *config) {
 		c.tlsConfig = cfg
+	}
+}
+
+func WithHTTPClient(client connect.HTTPClient) Option {
+	return func(c *config) {
+		c.httpClient = client
 	}
 }
 
