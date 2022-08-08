@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/bufbuild/connect-go"
@@ -36,23 +37,14 @@ func New[T any](
 	auth *auth.Authorization,
 	opts ...Option,
 ) T {
-	cfg := &config{}
-	for _, o := range opts {
-		o(cfg)
-	}
+	cfg := configFromOptions(opts...)
 
-	cOpts := []connect.ClientOption{
-		clientCompressionOpt(defaultCompressionName, defaultCompressionLevel),
-		connect.WithSendCompression(defaultCompressionName),
-		connect.WithCodec(codec.DefaultCodec),
-		connect.WithReadMaxBytes(maxMessageSize),
-		connect.WithInterceptors(
-			&setHeadersInterceptor{
-				"Authorization",
-				auth.Type().String() + " " + auth.HeaderValue(),
-			},
-		),
-	}
+	cOpts := append(defaultClientOptions(), connect.WithInterceptors(
+		&setHeadersInterceptor{
+			"Authorization",
+			auth.Type().String() + " " + auth.HeaderValue(),
+		},
+	))
 
 	if len(cfg.extraClientOptions) > 0 {
 		cOpts = append(cOpts, cfg.extraClientOptions...)
@@ -61,9 +53,85 @@ func New[T any](
 	return fn(newClient(cfg.tlsConfig), "https://"+addr, cOpts...)
 }
 
+type ClientPool[T any] struct {
+	fn            func(connect.HTTPClient, string, ...connect.ClientOption) T
+	pool          map[string]T
+	poolMu        sync.RWMutex
+	cfg           *config
+	clientOptions []connect.ClientOption
+}
+
+func (p *ClientPool[T]) Get(addr string) T {
+	// First check the fast path, if there's already
+	// an initialized client for this address
+	p.poolMu.RLock()
+	client, ok := p.pool[addr]
+	p.poolMu.RUnlock()
+	if ok {
+		return client
+	}
+
+	// create a new one outside a lock, worst case, we create multiple, last one wins
+	// and the others are GC'd
+	client = p.fn(newClient(p.cfg.tlsConfig), "https://"+addr, p.clientOptions...)
+
+	// lock the map to store the client
+	p.poolMu.Lock()
+	p.pool[addr] = client
+	p.poolMu.Unlock()
+
+	// finally, read from the map again to make sure we use the instance that
+	// was actually written. This is because of the race condition above where multiple
+	// instances were created but only one can be written into the map
+	p.poolMu.RLock()
+	client = p.pool[addr]
+	p.poolMu.RUnlock()
+	return client
+}
+
+func (p *ClientPool[T]) Release(addr string) {
+	p.poolMu.Lock()
+	delete(p.pool, addr)
+	p.poolMu.Unlock()
+}
+
+func (p *ClientPool[T]) Len() int {
+	p.poolMu.RLock()
+	defer p.poolMu.RUnlock()
+	return len(p.pool)
+}
+
+func NewUnauthenticatedPool[T any](
+	fn func(connect.HTTPClient, string, ...connect.ClientOption) T,
+	opts ...Option,
+) *ClientPool[T] {
+	cfg := configFromOptions(opts...)
+
+	cOpts := defaultClientOptions()
+	if len(cfg.extraClientOptions) > 0 {
+		cOpts = append(cOpts, cfg.extraClientOptions...)
+	}
+
+	return &ClientPool[T]{
+		fn:            fn,
+		pool:          make(map[string]T),
+		cfg:           cfg,
+		clientOptions: cOpts,
+	}
+}
+
 func clientCompressionOpt(name string, level compress.Level) connect.ClientOption {
 	opt, _ := compress.Select(name, level)
 	return opt
+}
+
+func defaultClientOptions() []connect.ClientOption {
+	return []connect.ClientOption{
+		clientCompressionOpt(defaultCompressionName, defaultCompressionLevel),
+		connect.WithSendCompression(defaultCompressionName),
+		connect.WithCodec(codec.DefaultCodec),
+		connect.WithReadMaxBytes(maxMessageSize),
+	}
 }
 
 func newClient(tlsConfig *tls.Config) connect.HTTPClient {
