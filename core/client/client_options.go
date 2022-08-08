@@ -15,6 +15,14 @@ type config struct {
 	extraClientOptions []connect.ClientOption
 }
 
+func configFromOptions(opts ...Option) *config {
+	cfg := &config{}
+	for _, o := range opts {
+		o(cfg)
+	}
+	return cfg
+}
+
 type Option func(*config)
 
 func WithTLSConfig(cfg *tls.Config) Option {
