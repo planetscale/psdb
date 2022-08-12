@@ -131,6 +131,7 @@ func defaultClientOptions() []connect.ClientOption {
 		connect.WithSendCompression(defaultCompressionName),
 		connect.WithCodec(codec.DefaultCodec),
 		connect.WithReadMaxBytes(maxMessageSize),
+		connect.WithSendMaxBytes(maxMessageSize),
 	}
 }
 
