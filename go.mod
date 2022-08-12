@@ -3,7 +3,7 @@ module github.com/planetscale/psdb
 go 1.19
 
 require (
-	github.com/bufbuild/connect-go v0.3.0
+	github.com/bufbuild/connect-go v0.3.1-0.20220810193006-a9df14318a34
 	github.com/klauspost/connect-compress v0.1.1
 	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.7.0
