@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+// this is psdb.v1beta1 package description
+package psdb.v1beta1;
+
+import "vitess/v14/vitess.proto";
+
+// Role represents the PlanetScale user role.
+enum Role {
+  reader = 0;
+  writer = 1;
+  readwriter = 2;
+  admin = 3;
+}
+
+// User represents the PlanetScale user of the authenticated request.
+message User {
+  // username is the username from the authentication credentials.
+  string username = 1;
+  // psid is the PlanetScale cluster identifier this user exists in.
+  string psid = 2;
+  // role is the PlanetScale role for this User.
+  Role role = 3;
+}
+
+// CreateSessionRequest is used with CreateSession.
+message CreateSessionRequest {}
+
+// CreateSessionResponse gives you a new initialized Session,
+// as well as the metadata of the authenticated request.
+message CreateSessionResponse {
+  // session is the connection Session.
+  Session session = 1;
+
+  // branch is the branch id of the branch we're authenticated to.
+  string branch = 2;
+  // user is the User of this authenticated request.
+  User user = 3;
+}
+
+// ExecuteRequest is used for both Execte and StreamExecute.
+message ExecuteRequest {
+  // session is the connection Session from a previous request.
+  // If null, will be created lazily.
+  Session session = 1;
+
+  // query is a SQL statement to execute, does not need to be ended with `;`,
+  // and will error for multiple statements.
+  string query = 2;
+}
+
+// ExecuteResponse is the results of an Execute or StreamExecute request.
+message ExecuteResponse {
+  // session is the connection Session.
+  Session session = 1;
+
+  // result is the QueryResult from executing SQL.
+  vitess.v14.QueryResult result = 2;
+}
+
+// CloseSessionRequest is used with CloseSessionRequest.
+message CloseSessionRequest {
+  // session is the connection Session.
+  Session session = 1;
+}
+
+// CloseSessionResponse is the response from CloseSession.
+message CloseSessionResponse {
+  // session is the connection Session from a previous request.
+  // If null, will be created lazily.
+  Session session = 1;
+}
+
+// Session is used similar to a browser Cookie. It is intended to be an
+// opaque byte array and not useful for consumers to interpret this.
+// A session represents a hard MySQL connection. Since multiple concurrent
+// sessions may be multiplexed over a single HTTP connection, the Session
+// maintains the connection state. If this isn't maintained, things like
+// transactions and session variables will not work.
+message Session {
+  bytes data = 1;
+}
+
+// Database is the main service for accessing a PlanetScale database. All requests
+// must be authenticated.
+service Database {
+  // CreateSession isn't necessarily, but works for validating authentication
+  // information or getting insight into the credentials sending. Other than that,
+  // this isn't necessary to use for normal operations.
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse) {}
+
+  // Execute is the main entrypoint for executing a SQL statement. The max rows
+  // returned in a single ExecuteResponse is 100,000. For results larger than this,
+  // StreamExecute must be used instead.
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
+
+  // StreamExecute is almost identical to Execute, except rows are streamed back
+  // in chunks. This is required for larger OLAP queries, and potentially
+  // desired in low memory environments.
+  rpc StreamExecute(ExecuteRequest) returns (stream ExecuteResponse) {}
+
+  // CloseSession is similar to disconnecting a MySQL connection. If effectively
+  // rolls back all state in the current Session and gives you a new one.
+  // This isn't particularly needed in normal operations.
+  rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse) {}
+}

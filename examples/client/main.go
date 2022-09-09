@@ -9,8 +9,8 @@ import (
 
 	"github.com/planetscale/psdb/auth"
 	psdbclient "github.com/planetscale/psdb/core/client"
-	psdbv1alpha1 "github.com/planetscale/psdb/types/psdb/v1alpha1"
-	"github.com/planetscale/psdb/types/psdb/v1alpha1/psdbv1alpha1connect"
+	psdbv1beta1 "github.com/planetscale/psdb/types/psdb/v1beta1"
+	"github.com/planetscale/psdb/types/psdb/v1beta1/psdbv1beta1connect"
 )
 
 var (
@@ -38,21 +38,21 @@ func main() {
 
 	client := psdbclient.New(
 		*flagAddr,
-		psdbv1alpha1connect.NewDatabaseClient,
+		psdbv1beta1connect.NewDatabaseClient,
 		auth.NewBasicAuth(*flagUser, *flagPassword),
 		opts...,
 	)
 	fmt.Println(client)
 
-	fmt.Println(client.CreateSession(context.Background(), connect.NewRequest(&psdbv1alpha1.CreateSessionRequest{})))
+	fmt.Println(client.CreateSession(context.Background(), connect.NewRequest(&psdbv1beta1.CreateSessionRequest{})))
 
 	pool := psdbclient.NewUnauthenticatedPool(
-		psdbv1alpha1connect.NewDatabaseClient,
+		psdbv1beta1connect.NewDatabaseClient,
 		opts...,
 	)
 
 	client = pool.Get(*flagAddr)
 	fmt.Println(client, pool.Get(*flagAddr))
-	fmt.Println(client.CreateSession(context.Background(), connect.NewRequest(&psdbv1alpha1.CreateSessionRequest{})))
+	fmt.Println(client.CreateSession(context.Background(), connect.NewRequest(&psdbv1beta1.CreateSessionRequest{})))
 	fmt.Println(pool.Len())
 }
