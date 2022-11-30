@@ -120,14 +120,9 @@ func NewUnauthenticatedPool[T any](
 	}
 }
 
-func clientCompressionOpt(name string, level compress.Level) connect.ClientOption {
-	opt, _ := compress.Select(name, level)
-	return opt
-}
-
 func defaultClientOptions() []connect.ClientOption {
 	return []connect.ClientOption{
-		clientCompressionOpt(defaultCompressionName, defaultCompressionLevel),
+		compress.WithNew(defaultCompressionName, defaultCompressionLevel),
 		connect.WithSendCompression(defaultCompressionName),
 		connect.WithCodec(codec.DefaultCodec),
 		connect.WithReadMaxBytes(maxMessageSize),
