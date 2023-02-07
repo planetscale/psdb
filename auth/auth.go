@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	"unsafe"
 
 	"github.com/segmentio/asm/base64"
 )
@@ -98,6 +99,13 @@ func ParseWithSecret(value string) (*Authorization, error) {
 }
 
 func parse(value string, keepSecret bool) (*Authorization, error) {
+	// NOTE: this requires 2 allocations, one is for the []byte from base64 decoding
+	// this can't be from a pool, since this needs to ultimately be owned by the Authorization
+	// struct anyways, so even if there was a buffer to work with, the bytes would need to be
+	// copied out anyways into the username and secretBytes.
+	// Then the Authorization itself, which can be pooled, but we don't have a clear
+	// indication to return it to the pool, so we are letting it get GC'd.
+
 	spacePos := strings.IndexByte(value, ' ')
 	if spacePos < 0 {
 		return nil, ErrMalformedAuthorization
@@ -126,7 +134,7 @@ func parse(value string, keepSecret bool) (*Authorization, error) {
 
 	return &Authorization{
 		authType:    AuthType(authType),
-		username:    string(username),
+		username:    bytesToString(username),
 		headerValue: value,
 		secretBytes: secret,
 	}, nil
@@ -162,4 +170,8 @@ func makeAuthType(s string) (AuthType, error) {
 		return MysqlSha256AuthType, nil
 	}
 	return AuthType(""), ErrMalformedAuthorization
+}
+
+func bytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }

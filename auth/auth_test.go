@@ -146,6 +146,42 @@ func TestParseWithSecret(t *testing.T) {
 	}
 }
 
+func BenchmarkParse(b *testing.B) {
+	cases := []struct {
+		name, in string
+	}{
+		{"Basic", "Basic eHh4eHh4eHh4eHJvdXRlLWhpbnQ6YmFy"},
+		{"mysql-sha1", "mysql-sha1 eHh4eHh4eHh4eHJvdXRlLWhpbnQ6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+		{"mysql-sha256", "mysql-sha256 eHh4eHh4eHh4eHJvdXRlLWhpbnQ6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+	}
+	for _, c := range cases {
+		b.Run(c.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				Parse(c.in)
+			}
+		})
+	}
+}
+
+func BenchmarkParseWithSecret(b *testing.B) {
+	cases := []struct {
+		name, in string
+	}{
+		{"Basic", "Basic eHh4eHh4eHh4eHJvdXRlLWhpbnQ6YmFy"},
+		{"mysql-sha1", "mysql-sha1 eHh4eHh4eHh4eHJvdXRlLWhpbnQ6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+		{"mysql-sha256", "mysql-sha256 eHh4eHh4eHh4eHJvdXRlLWhpbnQ6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+	}
+	for _, c := range cases {
+		b.Run(c.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				ParseWithSecret(c.in)
+			}
+		})
+	}
+}
+
 func joinBytes(a []byte, rest ...[]byte) []byte {
 	ll := len(a)
 	for _, b := range rest {
