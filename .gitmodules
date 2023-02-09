@@ -1,0 +1,3 @@
+[submodule "thirdparty/vitess"]
+	path = thirdparty/vitess
+	url = https://github.com/planetscale/vitess-types
