@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/bufbuild/connect-go v1.5.1
 	github.com/klauspost/connect-compress v1.0.0
+	github.com/planetscale/vitess-types v0.0.0-20230210165505-c0e8b7520c81
 	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/protobuf v1.28.1

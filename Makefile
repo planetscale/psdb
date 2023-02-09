@@ -1,25 +1,29 @@
 gomod := github.com/planetscale/psdb
 
-PSDB_PROTO_OUT := types
-PSDB_PROTO_ROOT := $(PSDB_PROTO_OUT)/psdb
-PSDB_DATA_V1 := $(PSDB_PROTO_ROOT)/data/v1
-PSDB_V1ALPHA1 := $(PSDB_PROTO_ROOT)/v1alpha1
+PROTO_OUT := types
+PSDB_OUT := $(PROTO_OUT)/psdb
+PSDBDATA_OUT := $(PSDB_OUT)/data
+PSDBCONNECT_OUT := $(PROTO_OUT)/psdbconnect
 
-PROTOC_VERSION=21.3
+PSDBDATAV1_OUT := $(PSDBDATA_OUT)/v1
+PSDBV1ALPHA1_OUT := $(PSDB_OUT)/v1alpha1
+PSDBCONNECTV1_OUT := $(PSDBCONNECT_OUT)/v1
+
+PROTO_SRC := proto-src
+PSDB_SRC := $(PROTO_SRC)/psdb
+PSDBDATA_SRC := $(PSDB_SRC)/data
+PSDBCONNECT_SRC := $(PROTO_SRC)/psdbconnect
+
+PSDBDATAV1_SRC := $(PSDBDATA_SRC)/v1
+PSDBV1ALPHA1_SRC := $(PSDB_SRC)/v1alpha1
+PSDBCONNECTV1_SRC := $(PSDBCONNECT_SRC)/v1
 
 BIN := bin
-
-UNAME_OS := $(shell uname -s)
-UNAME_ARCH := $(shell uname -m)
-
-proto: \
-	$(PSDB_DATA_V1)/data.pb.go \
-	$(PSDB_V1ALPHA1)/database.pb.go
 
 clean: clean-proto clean-bin
 
 clean-proto:
-	rm -rf $(PSDB_PROTO_OUT)
+	rm -rf $(PROTO_OUT)
 
 clean-bin:
 	rm -rf $(BIN)
@@ -27,90 +31,72 @@ clean-bin:
 $(BIN):
 	mkdir -p $(BIN)
 
-$(PSDB_PROTO_OUT):
-	mkdir -p $(PSDB_PROTO_OUT)
+$(PROTO_OUT):
+	mkdir -p $(PROTO_OUT)
 
-TOOL_INSTALL := cd tools && env GOBIN=$(PWD)/$(BIN) go install
+TOOL_INSTALL := env GOBIN=$(PWD)/$(BIN) go install
 
-$(BIN)/protoc-gen-go: | $(BIN)
-	$(TOOL_INSTALL) google.golang.org/protobuf/cmd/protoc-gen-go
+$(BIN)/protoc-gen-go: Makefile | $(BIN)
+	$(TOOL_INSTALL) google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
 
-$(BIN)/protoc-gen-connect-go: | $(BIN)
-	$(TOOL_INSTALL) github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go
+$(BIN)/protoc-gen-go-vtproto: Makefile | $(BIN)
+	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@v0.4.0
 
-$(BIN)/protoc-gen-go-vtproto: | $(BIN)
-	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto
+$(BIN)/protoc-gen-connect-go: Makefile | $(BIN)
+	$(TOOL_INSTALL) github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go@v1.5.1
 
-$(BIN)/gofumpt: | $(BIN)
-	$(TOOL_INSTALL) mvdan.cc/gofumpt
+$(BIN)/gofumpt: Makefile | $(BIN)
+	$(TOOL_INSTALL) mvdan.cc/gofumpt@v0.4.0
 
-$(BIN)/staticcheck: | $(BIN)
-	$(TOOL_INSTALL) honnef.co/go/tools/cmd/staticcheck
+$(BIN)/staticcheck: Makefile | $(BIN)
+	$(TOOL_INSTALL) honnef.co/go/tools/cmd/staticcheck@v0.3.3
 
-$(BIN)/enumcheck: | $(BIN)
-	$(TOOL_INSTALL) loov.dev/enumcheck
+$(BIN)/enumcheck: Makefile | $(BIN)
+	$(TOOL_INSTALL) loov.dev/enumcheck@v0.0.0-20220314183541-8aa7b787306e
 
-ifeq ($(UNAME_OS),Darwin)
-PROTOC_OS := osx
-ifeq ($(UNAME_ARCH),arm64)
-PROTOC_ARCH := aarch_64
-else
-PROTOC_ARCH := x86_64
-endif
-endif
-ifeq ($(UNAME_OS),Linux)
-PROTOC_OS = linux
-ifeq ($(UNAME_ARCH),aarch64)
-PROTOC_ARCH := aarch_64
-else
-PROTOC_ARCH := $(UNAME_ARCH)
-endif
-endif
+$(BIN)/govulncheck: Makefile | $(BIN)
+	$(TOOL_INSTALL) golang.org/x/vuln/cmd/govulncheck@v0.0.0-20230110180137-6ad3e3d07815
 
-$(BIN)/protoc: | $(BIN)
-	rm -rf tmp-protoc
-	mkdir -p tmp-protoc
-	wget -O tmp-protoc/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_OS)-$(PROTOC_ARCH).zip
-	unzip -d tmp-protoc tmp-protoc/protoc.zip
-	mv tmp-protoc/bin/protoc $(BIN)/
-	rm -rf tmp-protoc
+$(BIN)/buf: Makefile | $(BIN)
+	$(TOOL_INSTALL) github.com/bufbuild/buf/cmd/buf@v1.14.0
 
-PROTO_TOOLS := $(BIN)/protoc $(BIN)/protoc-gen-go $(BIN)/protoc-gen-connect-go $(BIN)/protoc-gen-go-vtproto
-tools: $(PROTO_TOOLS) $(BIN)/gofumpt $(BIN)/staticcheck $(BIN)/enumcheck
+$(BIN)/yq: Makefile | $(BIN)
+	$(TOOL_INSTALL) github.com/mikefarah/yq/v4@v4.30.8
 
-$(PSDB_DATA_V1)/data.pb.go: $(PROTO_TOOLS) proto-src/psdb/data/v1/data.proto | $(PSDB_PROTO_OUT)
-	$(BIN)/protoc \
-	  --plugin=protoc-gen-go=$(BIN)/protoc-gen-go \
-	  --plugin=protoc-gen-go-vtproto=$(BIN)/protoc-gen-go-vtproto \
-	  --go_out=$(PSDB_PROTO_OUT) \
-	  --go-vtproto_out=$(PSDB_PROTO_OUT) \
-	  --go_opt=paths=source_relative \
-	  --go-vtproto_opt=features=marshal+unmarshal+size \
-	  --go-vtproto_opt=paths=source_relative \
-	  -I proto-src \
-	  proto-src/psdb/data/v1/data.proto
+PROTO_TOOLS := $(BIN)/protoc-gen-go $(BIN)/protoc-gen-connect-go $(BIN)/protoc-gen-go-vtproto $(BIN)/buf
+tools: $(PROTO_TOOLS) $(BIN)/gofumpt $(BIN)/staticcheck $(BIN)/enumcheck $(BIN)/govulncheck $(BIN)/yq
 
-$(PSDB_V1ALPHA1)/database.pb.go: $(PROTO_TOOLS) proto-src/psdb/v1alpha1/database.proto | $(PSDB_PROTO_OUT)
-	$(BIN)/protoc \
-	  --plugin=protoc-gen-go=$(BIN)/protoc-gen-go \
-	  --plugin=protoc-gen-go-vtproto=$(BIN)/protoc-gen-go-vtproto \
-	  --plugin=protoc-gen-connect-go=$(BIN)/protoc-gen-connect-go \
-	  --go_out=$(PSDB_PROTO_OUT) \
-	  --go-vtproto_out=$(PSDB_PROTO_OUT) \
-	  --connect-go_out=$(PSDB_PROTO_OUT) \
-	  --go_opt=paths=source_relative \
-	  --go-vtproto_opt=features=marshal+unmarshal+size \
-	  --go-vtproto_opt=paths=source_relative \
-	  --connect-go_opt=paths=source_relative \
-	  -I proto-src \
-	  proto-src/psdb/v1alpha1/database.proto
+proto: \
+	$(PSDBCONNECTV1_OUT)/connect.pb.go \
+	$(PSDBDATAV1_OUT)/data.pb.go \
+	$(PSDBV1ALPHA1_OUT)/database.pb.go
 
-fmt: fmt-go
+$(PSDBCONNECTV1_OUT)/connect.pb.go: $(PROTO_TOOLS) $(PSDBCONNECTV1_SRC)/connect.proto | $(PROTO_OUT)
+	$(BIN)/buf generate --path $(PSDBCONNECTV1_SRC)/connect.proto
+
+$(PSDBDATAV1_OUT)/data.pb.go: $(PROTO_TOOLS) $(PSDBDATAV1_SRC)/data.proto | $(PROTO_OUT)
+	$(BIN)/buf generate --path $(PSDBDATAV1_SRC)/data.proto
+
+$(PSDBV1ALPHA1_OUT)/database.pb.go: $(PROTO_TOOLS) $(PSDBV1ALPHA1_SRC)/database.proto | $(PROTO_OUT)
+	$(BIN)/buf generate --path $(PSDBV1ALPHA1_SRC)/database.proto
+
+fmt: fmt-go fmt-proto
 
 fmt-go: $(BIN)/gofumpt
 	$(BIN)/gofumpt -l -w .
 
-lint: lint-vet lint-staticcheck lint-enumcheck
+fmt-proto: $(BIN)/buf
+	$(BIN)/buf format -w proto-src
+
+fmt-yaml: $(BIN)/yq
+ifeq (, $(shell command -v fd 2>/dev/null))
+	@echo "!! Maybe install 'fd', it's a lot faster (https://github.com/sharkdp/fd)"
+	find . -type f \( -name '*.yaml' -o -name '*.yml' \) -exec $(BIN)/yq -iP eval-all . {} \;
+else
+	fd . -t f -e yaml -e yml -x $(BIN)/yq -iP eval-all . {} \;
+endif
+
+lint: lint-vet lint-staticcheck lint-enumcheck lint-govulncheck lint-proto
 
 lint-vet:
 	go vet ./...
@@ -121,18 +107,22 @@ lint-staticcheck: $(BIN)/staticcheck
 lint-enumcheck: $(BIN)/enumcheck
 	$(BIN)/enumcheck ./...
 
+lint-govulncheck: $(BIN)/govulncheck
+	$(BIN)/govulncheck ./...
+
+lint-proto: $(BIN)/buf
+	$(BIN)/buf lint -v proto-src
+
 tests:
 	go test -v ./...
 
 update:
 	go get -v -u ./...
 	go mod tidy
-	cd tools && go get -v -u ./internal
-	cd tools && go mod tidy
 	$(MAKE) clean proto
 
 .PHONY: proto tools update \
 		clean clean-proto clean-bin \
-		fmt fmt-go \
-		lint lint-vet lint-staticcheck lint-enumcheck \
+		fmt fmt-go fmt-proto fmt-yaml \
+		lint lint-vet lint-staticcheck lint-enumcheck lint-govulncheck lint-proto \
 		tests

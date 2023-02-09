@@ -9,6 +9,8 @@ github.com/klauspost/compress v1.15.15 h1:EF27CXIuDsYJ6mmvtBRlEuB2UVOqHG1tAXgZ7y
 github.com/klauspost/compress v1.15.15/go.mod h1:ZcK2JAFqKOpnBlxcLsJzYfrS9X1akm9fHZNnD9+Vo/4=
 github.com/klauspost/connect-compress v1.0.0 h1:ta/pUrREWnlm9VzmNKDAyn09pQnEsQPta6No9gWmtb4=
 github.com/klauspost/connect-compress v1.0.0/go.mod h1:cATACCZtbGMcHcyqT3dqbJh6CDmyUNcE/sE2Qa6CVLw=
+github.com/planetscale/vitess-types v0.0.0-20230210165505-c0e8b7520c81 h1:ZZmeb7vzWLDAUl6grl/wbfCQhcDWIUCITW7sCw/FSgQ=
+github.com/planetscale/vitess-types v0.0.0-20230210165505-c0e8b7520c81/go.mod h1:i8Ym169j/0PLwPf8+2W6qE0Md2EMcO8vGUSt4NtMxso=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/segmentio/asm v1.2.0 h1:9BQrFxC+YOHJlTlHGkTrFWf59nbL3XnCoFLTwDCI7ys=
