@@ -9,8 +9,8 @@ import (
 
 	"github.com/planetscale/psdb/auth"
 	psdbclient "github.com/planetscale/psdb/core/client"
-	psdbv1alpha1 "github.com/planetscale/psdb/types/psdb/v1alpha1"
-	"github.com/planetscale/psdb/types/psdb/v1alpha1/psdbv1alpha1connect"
+	psdbv1alpha1 "github.com/planetscale/psdb/types/psdb/v1"
+	"github.com/planetscale/psdb/types/psdb/v1/psdbv1connect"
 )
 
 var (
@@ -38,7 +38,7 @@ func main() {
 
 	client := psdbclient.New(
 		*flagAddr,
-		psdbv1alpha1connect.NewDatabaseClient,
+		psdbv1connect.NewDatabaseClient,
 		auth.NewBasicAuth(*flagUser, *flagPassword),
 		opts...,
 	)
@@ -47,7 +47,7 @@ func main() {
 	fmt.Println(client.CreateSession(context.Background(), connect.NewRequest(&psdbv1alpha1.CreateSessionRequest{})))
 
 	pool := psdbclient.NewUnauthenticatedPool(
-		psdbv1alpha1connect.NewDatabaseClient,
+		psdbv1connect.NewDatabaseClient,
 		opts...,
 	)
 
