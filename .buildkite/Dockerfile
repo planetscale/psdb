@@ -1,4 +1,4 @@
-FROM golang:1.19-bullseye
+FROM golang:1.20-bullseye
 
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y ruby && gem install license_finder && \
