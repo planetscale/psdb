@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 
 	"github.com/planetscale/psdb/auth"
 	psdbclient "github.com/planetscale/psdb/core/client"

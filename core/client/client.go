@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bufbuild/connect-go"
-	compress "github.com/klauspost/connect-compress"
+	"connectrpc.com/connect"
+	compress "github.com/klauspost/connect-compress/v2"
 	"github.com/planetscale/psdb/auth"
 	"github.com/planetscale/psdb/core/codec"
 )

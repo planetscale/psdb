@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 )
 
 type config struct {
