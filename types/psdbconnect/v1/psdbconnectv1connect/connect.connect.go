@@ -5,9 +5,9 @@
 package psdbconnectv1connect
 
 import (
+	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	connect_go "github.com/bufbuild/connect-go"
 	v1 "github.com/planetscale/psdb/types/psdbconnect/v1"
 	http "net/http"
 	strings "strings"
@@ -18,16 +18,28 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect_go.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion0_1_0
 
 const (
 	// ConnectName is the fully-qualified name of the Connect service.
 	ConnectName = "psdbconnect.v1.Connect"
 )
 
+// These constants are the fully-qualified names of the RPCs defined in this package. They're
+// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+//
+// Note that these are different from the fully-qualified method names used by
+// google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
+// reflection-formatted method names, remove the leading slash and convert the remaining slash to a
+// period.
+const (
+	// ConnectSyncProcedure is the fully-qualified name of the Connect's Sync RPC.
+	ConnectSyncProcedure = "/psdbconnect.v1.Connect/Sync"
+)
+
 // ConnectClient is a client for the psdbconnect.v1.Connect service.
 type ConnectClient interface {
-	Sync(context.Context, *connect_go.Request[v1.SyncRequest]) (*connect_go.ServerStreamForClient[v1.SyncResponse], error)
+	Sync(context.Context, *connect.Request[v1.SyncRequest]) (*connect.ServerStreamForClient[v1.SyncResponse], error)
 }
 
 // NewConnectClient constructs a client for the psdbconnect.v1.Connect service. By default, it uses
@@ -37,12 +49,12 @@ type ConnectClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewConnectClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ConnectClient {
+func NewConnectClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) ConnectClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &connectClient{
-		sync: connect_go.NewClient[v1.SyncRequest, v1.SyncResponse](
+		sync: connect.NewClient[v1.SyncRequest, v1.SyncResponse](
 			httpClient,
-			baseURL+"/psdbconnect.v1.Connect/Sync",
+			baseURL+ConnectSyncProcedure,
 			opts...,
 		),
 	}
@@ -50,17 +62,17 @@ func NewConnectClient(httpClient connect_go.HTTPClient, baseURL string, opts ...
 
 // connectClient implements ConnectClient.
 type connectClient struct {
-	sync *connect_go.Client[v1.SyncRequest, v1.SyncResponse]
+	sync *connect.Client[v1.SyncRequest, v1.SyncResponse]
 }
 
 // Sync calls psdbconnect.v1.Connect.Sync.
-func (c *connectClient) Sync(ctx context.Context, req *connect_go.Request[v1.SyncRequest]) (*connect_go.ServerStreamForClient[v1.SyncResponse], error) {
+func (c *connectClient) Sync(ctx context.Context, req *connect.Request[v1.SyncRequest]) (*connect.ServerStreamForClient[v1.SyncResponse], error) {
 	return c.sync.CallServerStream(ctx, req)
 }
 
 // ConnectHandler is an implementation of the psdbconnect.v1.Connect service.
 type ConnectHandler interface {
-	Sync(context.Context, *connect_go.Request[v1.SyncRequest], *connect_go.ServerStream[v1.SyncResponse]) error
+	Sync(context.Context, *connect.Request[v1.SyncRequest], *connect.ServerStream[v1.SyncResponse]) error
 }
 
 // NewConnectHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -68,19 +80,25 @@ type ConnectHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewConnectHandler(svc ConnectHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/psdbconnect.v1.Connect/Sync", connect_go.NewServerStreamHandler(
-		"/psdbconnect.v1.Connect/Sync",
+func NewConnectHandler(svc ConnectHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	connectSyncHandler := connect.NewServerStreamHandler(
+		ConnectSyncProcedure,
 		svc.Sync,
 		opts...,
-	))
-	return "/psdbconnect.v1.Connect/", mux
+	)
+	return "/psdbconnect.v1.Connect/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case ConnectSyncProcedure:
+			connectSyncHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedConnectHandler returns CodeUnimplemented from all methods.
 type UnimplementedConnectHandler struct{}
 
-func (UnimplementedConnectHandler) Sync(context.Context, *connect_go.Request[v1.SyncRequest], *connect_go.ServerStream[v1.SyncResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("psdbconnect.v1.Connect.Sync is not implemented"))
+func (UnimplementedConnectHandler) Sync(context.Context, *connect.Request[v1.SyncRequest], *connect.ServerStream[v1.SyncResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("psdbconnect.v1.Connect.Sync is not implemented"))
 }

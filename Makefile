@@ -43,7 +43,7 @@ $(BIN)/protoc-gen-go-vtproto: Makefile | $(BIN)
 	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@v0.4.0
 
 $(BIN)/protoc-gen-connect-go: Makefile | $(BIN)
-	$(TOOL_INSTALL) github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go@v1.5.1
+	$(TOOL_INSTALL) connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.11.0
 
 $(BIN)/gofumpt: Makefile | $(BIN)
 	$(TOOL_INSTALL) mvdan.cc/gofumpt@v0.4.0

@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 )
 
 type setHeadersInterceptor struct {

@@ -5,9 +5,9 @@
 package psdbv1alpha1connect
 
 import (
+	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	connect_go "github.com/bufbuild/connect-go"
 	v1alpha1 "github.com/planetscale/psdb/types/psdb/v1alpha1"
 	http "net/http"
 	strings "strings"
@@ -18,16 +18,28 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect_go.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion0_1_0
 
 const (
 	// DatabaseName is the fully-qualified name of the Database service.
 	DatabaseName = "psdb.v1alpha1.Database"
 )
 
+// These constants are the fully-qualified names of the RPCs defined in this package. They're
+// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+//
+// Note that these are different from the fully-qualified method names used by
+// google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
+// reflection-formatted method names, remove the leading slash and convert the remaining slash to a
+// period.
+const (
+	// DatabaseCreateSessionProcedure is the fully-qualified name of the Database's CreateSession RPC.
+	DatabaseCreateSessionProcedure = "/psdb.v1alpha1.Database/CreateSession"
+)
+
 // DatabaseClient is a client for the psdb.v1alpha1.Database service.
 type DatabaseClient interface {
-	CreateSession(context.Context, *connect_go.Request[v1alpha1.CreateSessionRequest]) (*connect_go.Response[v1alpha1.CreateSessionResponse], error)
+	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
 }
 
 // NewDatabaseClient constructs a client for the psdb.v1alpha1.Database service. By default, it uses
@@ -37,12 +49,12 @@ type DatabaseClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewDatabaseClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) DatabaseClient {
+func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) DatabaseClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &databaseClient{
-		createSession: connect_go.NewClient[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse](
+		createSession: connect.NewClient[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse](
 			httpClient,
-			baseURL+"/psdb.v1alpha1.Database/CreateSession",
+			baseURL+DatabaseCreateSessionProcedure,
 			opts...,
 		),
 	}
@@ -50,17 +62,17 @@ func NewDatabaseClient(httpClient connect_go.HTTPClient, baseURL string, opts ..
 
 // databaseClient implements DatabaseClient.
 type databaseClient struct {
-	createSession *connect_go.Client[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse]
+	createSession *connect.Client[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse]
 }
 
 // CreateSession calls psdb.v1alpha1.Database.CreateSession.
-func (c *databaseClient) CreateSession(ctx context.Context, req *connect_go.Request[v1alpha1.CreateSessionRequest]) (*connect_go.Response[v1alpha1.CreateSessionResponse], error) {
+func (c *databaseClient) CreateSession(ctx context.Context, req *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error) {
 	return c.createSession.CallUnary(ctx, req)
 }
 
 // DatabaseHandler is an implementation of the psdb.v1alpha1.Database service.
 type DatabaseHandler interface {
-	CreateSession(context.Context, *connect_go.Request[v1alpha1.CreateSessionRequest]) (*connect_go.Response[v1alpha1.CreateSessionResponse], error)
+	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
 }
 
 // NewDatabaseHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -68,19 +80,25 @@ type DatabaseHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewDatabaseHandler(svc DatabaseHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/psdb.v1alpha1.Database/CreateSession", connect_go.NewUnaryHandler(
-		"/psdb.v1alpha1.Database/CreateSession",
+func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	databaseCreateSessionHandler := connect.NewUnaryHandler(
+		DatabaseCreateSessionProcedure,
 		svc.CreateSession,
 		opts...,
-	))
-	return "/psdb.v1alpha1.Database/", mux
+	)
+	return "/psdb.v1alpha1.Database/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case DatabaseCreateSessionProcedure:
+			databaseCreateSessionHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedDatabaseHandler returns CodeUnimplemented from all methods.
 type UnimplementedDatabaseHandler struct{}
 
-func (UnimplementedDatabaseHandler) CreateSession(context.Context, *connect_go.Request[v1alpha1.CreateSessionRequest]) (*connect_go.Response[v1alpha1.CreateSessionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.CreateSession is not implemented"))
+func (UnimplementedDatabaseHandler) CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.CreateSession is not implemented"))
 }
