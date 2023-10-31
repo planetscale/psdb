@@ -35,11 +35,23 @@ const (
 const (
 	// DatabaseCreateSessionProcedure is the fully-qualified name of the Database's CreateSession RPC.
 	DatabaseCreateSessionProcedure = "/psdb.v1alpha1.Database/CreateSession"
+	// DatabaseExecuteProcedure is the fully-qualified name of the Database's Execute RPC.
+	DatabaseExecuteProcedure = "/psdb.v1alpha1.Database/Execute"
+	// DatabaseStreamExecuteProcedure is the fully-qualified name of the Database's StreamExecute RPC.
+	DatabaseStreamExecuteProcedure = "/psdb.v1alpha1.Database/StreamExecute"
+	// DatabasePrepareProcedure is the fully-qualified name of the Database's Prepare RPC.
+	DatabasePrepareProcedure = "/psdb.v1alpha1.Database/Prepare"
+	// DatabaseCloseSessionProcedure is the fully-qualified name of the Database's CloseSession RPC.
+	DatabaseCloseSessionProcedure = "/psdb.v1alpha1.Database/CloseSession"
 )
 
 // DatabaseClient is a client for the psdb.v1alpha1.Database service.
 type DatabaseClient interface {
 	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
+	Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error)
+	StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.ServerStreamForClient[v1alpha1.ExecuteResponse], error)
+	Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error)
+	CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error)
 }
 
 // NewDatabaseClient constructs a client for the psdb.v1alpha1.Database service. By default, it uses
@@ -57,12 +69,36 @@ func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 			baseURL+DatabaseCreateSessionProcedure,
 			opts...,
 		),
+		execute: connect.NewClient[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse](
+			httpClient,
+			baseURL+DatabaseExecuteProcedure,
+			opts...,
+		),
+		streamExecute: connect.NewClient[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse](
+			httpClient,
+			baseURL+DatabaseStreamExecuteProcedure,
+			opts...,
+		),
+		prepare: connect.NewClient[v1alpha1.PrepareRequest, v1alpha1.PrepareResponse](
+			httpClient,
+			baseURL+DatabasePrepareProcedure,
+			opts...,
+		),
+		closeSession: connect.NewClient[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse](
+			httpClient,
+			baseURL+DatabaseCloseSessionProcedure,
+			opts...,
+		),
 	}
 }
 
 // databaseClient implements DatabaseClient.
 type databaseClient struct {
 	createSession *connect.Client[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse]
+	execute       *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
+	streamExecute *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
+	prepare       *connect.Client[v1alpha1.PrepareRequest, v1alpha1.PrepareResponse]
+	closeSession  *connect.Client[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse]
 }
 
 // CreateSession calls psdb.v1alpha1.Database.CreateSession.
@@ -70,9 +106,33 @@ func (c *databaseClient) CreateSession(ctx context.Context, req *connect.Request
 	return c.createSession.CallUnary(ctx, req)
 }
 
+// Execute calls psdb.v1alpha1.Database.Execute.
+func (c *databaseClient) Execute(ctx context.Context, req *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error) {
+	return c.execute.CallUnary(ctx, req)
+}
+
+// StreamExecute calls psdb.v1alpha1.Database.StreamExecute.
+func (c *databaseClient) StreamExecute(ctx context.Context, req *connect.Request[v1alpha1.ExecuteRequest]) (*connect.ServerStreamForClient[v1alpha1.ExecuteResponse], error) {
+	return c.streamExecute.CallServerStream(ctx, req)
+}
+
+// Prepare calls psdb.v1alpha1.Database.Prepare.
+func (c *databaseClient) Prepare(ctx context.Context, req *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error) {
+	return c.prepare.CallUnary(ctx, req)
+}
+
+// CloseSession calls psdb.v1alpha1.Database.CloseSession.
+func (c *databaseClient) CloseSession(ctx context.Context, req *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error) {
+	return c.closeSession.CallUnary(ctx, req)
+}
+
 // DatabaseHandler is an implementation of the psdb.v1alpha1.Database service.
 type DatabaseHandler interface {
 	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
+	Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error)
+	StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest], *connect.ServerStream[v1alpha1.ExecuteResponse]) error
+	Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error)
+	CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error)
 }
 
 // NewDatabaseHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -86,10 +146,38 @@ func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (str
 		svc.CreateSession,
 		opts...,
 	)
+	databaseExecuteHandler := connect.NewUnaryHandler(
+		DatabaseExecuteProcedure,
+		svc.Execute,
+		opts...,
+	)
+	databaseStreamExecuteHandler := connect.NewServerStreamHandler(
+		DatabaseStreamExecuteProcedure,
+		svc.StreamExecute,
+		opts...,
+	)
+	databasePrepareHandler := connect.NewUnaryHandler(
+		DatabasePrepareProcedure,
+		svc.Prepare,
+		opts...,
+	)
+	databaseCloseSessionHandler := connect.NewUnaryHandler(
+		DatabaseCloseSessionProcedure,
+		svc.CloseSession,
+		opts...,
+	)
 	return "/psdb.v1alpha1.Database/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DatabaseCreateSessionProcedure:
 			databaseCreateSessionHandler.ServeHTTP(w, r)
+		case DatabaseExecuteProcedure:
+			databaseExecuteHandler.ServeHTTP(w, r)
+		case DatabaseStreamExecuteProcedure:
+			databaseStreamExecuteHandler.ServeHTTP(w, r)
+		case DatabasePrepareProcedure:
+			databasePrepareHandler.ServeHTTP(w, r)
+		case DatabaseCloseSessionProcedure:
+			databaseCloseSessionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -101,4 +189,20 @@ type UnimplementedDatabaseHandler struct{}
 
 func (UnimplementedDatabaseHandler) CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.CreateSession is not implemented"))
+}
+
+func (UnimplementedDatabaseHandler) Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.Execute is not implemented"))
+}
+
+func (UnimplementedDatabaseHandler) StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest], *connect.ServerStream[v1alpha1.ExecuteResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.StreamExecute is not implemented"))
+}
+
+func (UnimplementedDatabaseHandler) Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.Prepare is not implemented"))
+}
+
+func (UnimplementedDatabaseHandler) CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.CloseSession is not implemented"))
 }

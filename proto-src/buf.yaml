@@ -1,4 +1,7 @@
 version: v1
+name: buf.build/planetscale/psdb
+deps:
+  - buf.build/planetscale/vitess
 breaking:
   use:
     - FILE
