@@ -1,0 +1,46 @@
+name: publish
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  publish:
+    name: publish buf module
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: setup go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '^1.21'
+
+    - name: install buf
+      run: make bin/buf
+
+    - name: login to BSR
+      env:
+        BUF_USER: ${{ vars.BUF_USER }}
+        BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+      run: |
+        echo "$BUF_TOKEN" | bin/buf registry login --username "$BUF_USER" --token-stdin
+
+    - name: publish to BSR main
+      if: ${{ github.ref == 'refs/heads/main' }}
+      run: bin/buf push -v proto-src
+
+    - name: publish to BSR branch
+      if: ${{ github.ref != 'refs/heads/main' }}
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+      run: bin/buf push -v --branch "$BRANCH_NAME" proto-src
+
+    - name: logout BSR
+      run: bin/buf registry logout
+

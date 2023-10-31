@@ -1,4 +1,3 @@
 version: v1
 directories:
   - proto-src
-  - thirdparty/vitess/src/vitess/v15
