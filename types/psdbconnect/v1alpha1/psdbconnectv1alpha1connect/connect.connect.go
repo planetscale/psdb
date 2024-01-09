@@ -39,6 +39,12 @@ const (
 
 // ConnectClient is a client for the psdbconnect.v1alpha1.Connect service.
 type ConnectClient interface {
+	// Sync will continuously stream data from a PlanetScale database given a table, keyspace and shard.
+	// Sync also allows you to incrementally sync data from a table given a TableCursor that is returned as part of the SyncResponse.
+	// If the last known position is empty, Sync will download all the rows for a given table in a shard
+	// and then wait to stream any changes to the table (inserts/updates/deletes)
+	// If the last known position is not empty, Sync will pickup where the last Sync session left off and stream
+	// any changes to the table since the last Sync session.
 	Sync(context.Context, *connect.Request[v1alpha1.SyncRequest]) (*connect.ServerStreamForClient[v1alpha1.SyncResponse], error)
 }
 
@@ -72,6 +78,12 @@ func (c *connectClient) Sync(ctx context.Context, req *connect.Request[v1alpha1.
 
 // ConnectHandler is an implementation of the psdbconnect.v1alpha1.Connect service.
 type ConnectHandler interface {
+	// Sync will continuously stream data from a PlanetScale database given a table, keyspace and shard.
+	// Sync also allows you to incrementally sync data from a table given a TableCursor that is returned as part of the SyncResponse.
+	// If the last known position is empty, Sync will download all the rows for a given table in a shard
+	// and then wait to stream any changes to the table (inserts/updates/deletes)
+	// If the last known position is not empty, Sync will pickup where the last Sync session left off and stream
+	// any changes to the table since the last Sync session.
 	Sync(context.Context, *connect.Request[v1alpha1.SyncRequest], *connect.ServerStream[v1alpha1.SyncResponse]) error
 }
 

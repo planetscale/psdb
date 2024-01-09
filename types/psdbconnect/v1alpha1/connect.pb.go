@@ -78,18 +78,27 @@ func (TabletType) EnumDescriptor() ([]byte, []int) {
 	return file_psdbconnect_v1alpha1_connect_proto_rawDescGZIP(), []int{0}
 }
 
+// SyncRequest sets up the Sync session for a specific table in a keyspace, shard.
 type SyncRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TableName      string       `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
-	Cursor         *TableCursor `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	TabletType     TabletType   `protobuf:"varint,3,opt,name=tablet_type,json=tabletType,proto3,enum=psdbconnect.v1alpha1.TabletType" json:"tablet_type,omitempty"`
-	IncludeInserts bool         `protobuf:"varint,4,opt,name=include_inserts,json=includeInserts,proto3" json:"include_inserts,omitempty"`
-	IncludeUpdates bool         `protobuf:"varint,5,opt,name=include_updates,json=includeUpdates,proto3" json:"include_updates,omitempty"`
-	IncludeDeletes bool         `protobuf:"varint,6,opt,name=include_deletes,json=includeDeletes,proto3" json:"include_deletes,omitempty"`
-	Columns        []string     `protobuf:"bytes,7,rep,name=columns,proto3" json:"columns,omitempty"`
+	// The table name to Sync
+	TableName string `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	// Any known state of the table from the last time a sync was run.
+	Cursor *TableCursor `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	// Tablet to stream data from
+	TabletType TabletType `protobuf:"varint,3,opt,name=tablet_type,json=tabletType,proto3,enum=psdbconnect.v1alpha1.TabletType" json:"tablet_type,omitempty"`
+	// If true, any new data inserted into the table in table_name will be sent in the Sync session.
+	IncludeInserts bool `protobuf:"varint,4,opt,name=include_inserts,json=includeInserts,proto3" json:"include_inserts,omitempty"`
+	// If true, any updates to data in the table in table_name will be sent in the Sync session.
+	IncludeUpdates bool `protobuf:"varint,5,opt,name=include_updates,json=includeUpdates,proto3" json:"include_updates,omitempty"`
+	// If true, any deletes to data in the table in table_name will be sent in the Sync session.
+	IncludeDeletes bool `protobuf:"varint,6,opt,name=include_deletes,json=includeDeletes,proto3" json:"include_deletes,omitempty"`
+	// A list of columns to include in the data from the table, an empty array means all columns.
+	// If a column is referenced here that isn't in the table's schema, the SyncRequest will fail.
+	Columns []string `protobuf:"bytes,7,rep,name=columns,proto3" json:"columns,omitempty"`
 	// if specified, these cells are used to pick source tablets from.
 	// defaults to the cell of the vtgate serving the VStream API.
 	Cells []string `protobuf:"bytes,8,rep,name=cells,proto3" json:"cells,omitempty"`
@@ -183,11 +192,13 @@ func (x *SyncRequest) GetCells() []string {
 	return nil
 }
 
+// DeletedRow denotes a row that is deleted from the table referenced in the SyncRequest
 type DeletedRow struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// This result will contain only the primary keys from the deleted row.
 	Result *v16.QueryResult `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 }
 
@@ -230,13 +241,16 @@ func (x *DeletedRow) GetResult() *v16.QueryResult {
 	return nil
 }
 
+// Updated denotes a row that is updated in the table referenced in the SyncRequest
 type UpdatedRow struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// All values of the table before the update was made.
 	Before *v16.QueryResult `protobuf:"bytes,1,opt,name=before,proto3" json:"before,omitempty"`
-	After  *v16.QueryResult `protobuf:"bytes,2,opt,name=after,proto3" json:"after,omitempty"`
+	// All values of the table ater the update was made.
+	After *v16.QueryResult `protobuf:"bytes,2,opt,name=after,proto3" json:"after,omitempty"`
 }
 
 func (x *UpdatedRow) Reset() {
@@ -285,16 +299,22 @@ func (x *UpdatedRow) GetAfter() *v16.QueryResult {
 	return nil
 }
 
+// SyncResponse denotes a response to the SyncRequest
 type SyncResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Result  []*v16.QueryResult `protobuf:"bytes,1,rep,name=result,proto3" json:"result,omitempty"`
-	Cursor  *TableCursor       `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	Error   *v161.RPCError     `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
-	Deletes []*DeletedRow      `protobuf:"bytes,4,rep,name=deletes,proto3" json:"deletes,omitempty"`
-	Updates []*UpdatedRow      `protobuf:"bytes,5,rep,name=updates,proto3" json:"updates,omitempty"`
+	// An array of rows that denote inserts into the table.
+	Result []*v16.QueryResult `protobuf:"bytes,1,rep,name=result,proto3" json:"result,omitempty"`
+	// A state object to use that denotes the current state of the SyncResponse.
+	Cursor *TableCursor `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	// Any errors encountered in streaming data from the table.
+	Error *v161.RPCError `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	// An array of rows that denote deletes from the table.
+	Deletes []*DeletedRow `protobuf:"bytes,4,rep,name=deletes,proto3" json:"deletes,omitempty"`
+	// An array of rows that denote updates to the table.
+	Updates []*UpdatedRow `protobuf:"bytes,5,rep,name=updates,proto3" json:"updates,omitempty"`
 }
 
 func (x *SyncResponse) Reset() {
@@ -364,14 +384,24 @@ func (x *SyncResponse) GetUpdates() []*UpdatedRow {
 	return nil
 }
 
+// TableCursor denotes state of a Sync request to a table.
+// This type can be round-tripped in a SyncRequest to pickup where the last Sync session left off.
 type TableCursor struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Shard       string           `protobuf:"bytes,1,opt,name=shard,proto3" json:"shard,omitempty"`
-	Keyspace    string           `protobuf:"bytes,2,opt,name=keyspace,proto3" json:"keyspace,omitempty"`
-	Position    string           `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
+	// The shard to sync data from.
+	Shard string `protobuf:"bytes,1,opt,name=shard,proto3" json:"shard,omitempty"`
+	// Keyspace within a shard where the table resides.
+	Keyspace string `protobuf:"bytes,2,opt,name=keyspace,proto3" json:"keyspace,omitempty"`
+	// Any known vgtid positions from the last a previous session.
+	// If this value is empty, the Sync request is treated as a request to
+	// download all data within a table in a shard.
+	// If this value is invalid, i.e. incorrect format or the binlogs have been purged,
+	// the SyncRequest will fail.
+	Position string `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
+	// Any known last known primary key values from the a previous session.
 	LastKnownPk *v16.QueryResult `protobuf:"bytes,4,opt,name=last_known_pk,json=lastKnownPk,proto3" json:"last_known_pk,omitempty"`
 }
 
