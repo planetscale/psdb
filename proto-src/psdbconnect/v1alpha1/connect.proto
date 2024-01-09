@@ -45,7 +45,7 @@ message SyncRequest {
 
 // DeletedRow denotes a row that is deleted from the table referenced in the SyncRequest
 message DeletedRow {
- // This result will contain only the primary keys from the deleted row. 
+  // This result will contain only the primary keys from the deleted row.
   vitess.query.v16.QueryResult result = 1;
 }
 
@@ -91,9 +91,9 @@ message TableCursor {
 service Connect {
   // Sync will continuously stream data from a PlanetScale database given a table, keyspace and shard.
   // Sync also allows you to incrementally sync data from a table given a TableCursor that is returned as part of the SyncResponse.
-  // If the last known position is empty, Sync will download all the rows for a given table in a shard 
+  // If the last known position is empty, Sync will download all the rows for a given table in a shard
   // and then wait to stream any changes to the table (inserts/updates/deletes)
-  // If the last known position is not empty, Sync will pickup where the last Sync session left off and stream 
+  // If the last known position is not empty, Sync will pickup where the last Sync session left off and stream
   // any changes to the table since the last Sync session.
   rpc Sync(SyncRequest) returns (stream SyncResponse) {}
 }
