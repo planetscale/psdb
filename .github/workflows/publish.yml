@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - executebatch
   pull_request:
     branches:
     - main
