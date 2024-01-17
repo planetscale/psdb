@@ -37,6 +37,8 @@ const (
 	DatabaseCreateSessionProcedure = "/psdb.v1alpha1.Database/CreateSession"
 	// DatabaseExecuteProcedure is the fully-qualified name of the Database's Execute RPC.
 	DatabaseExecuteProcedure = "/psdb.v1alpha1.Database/Execute"
+	// DatabaseExecuteBatchProcedure is the fully-qualified name of the Database's ExecuteBatch RPC.
+	DatabaseExecuteBatchProcedure = "/psdb.v1alpha1.Database/ExecuteBatch"
 	// DatabaseStreamExecuteProcedure is the fully-qualified name of the Database's StreamExecute RPC.
 	DatabaseStreamExecuteProcedure = "/psdb.v1alpha1.Database/StreamExecute"
 	// DatabasePrepareProcedure is the fully-qualified name of the Database's Prepare RPC.
@@ -49,6 +51,7 @@ const (
 type DatabaseClient interface {
 	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
 	Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error)
+	ExecuteBatch(context.Context, *connect.Request[v1alpha1.ExecuteBatchRequest]) (*connect.Response[v1alpha1.ExecuteBatchResponse], error)
 	StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.ServerStreamForClient[v1alpha1.ExecuteResponse], error)
 	Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error)
 	CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error)
@@ -74,6 +77,11 @@ func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 			baseURL+DatabaseExecuteProcedure,
 			opts...,
 		),
+		executeBatch: connect.NewClient[v1alpha1.ExecuteBatchRequest, v1alpha1.ExecuteBatchResponse](
+			httpClient,
+			baseURL+DatabaseExecuteBatchProcedure,
+			opts...,
+		),
 		streamExecute: connect.NewClient[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse](
 			httpClient,
 			baseURL+DatabaseStreamExecuteProcedure,
@@ -96,6 +104,7 @@ func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 type databaseClient struct {
 	createSession *connect.Client[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse]
 	execute       *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
+	executeBatch  *connect.Client[v1alpha1.ExecuteBatchRequest, v1alpha1.ExecuteBatchResponse]
 	streamExecute *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
 	prepare       *connect.Client[v1alpha1.PrepareRequest, v1alpha1.PrepareResponse]
 	closeSession  *connect.Client[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse]
@@ -109,6 +118,11 @@ func (c *databaseClient) CreateSession(ctx context.Context, req *connect.Request
 // Execute calls psdb.v1alpha1.Database.Execute.
 func (c *databaseClient) Execute(ctx context.Context, req *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error) {
 	return c.execute.CallUnary(ctx, req)
+}
+
+// ExecuteBatch calls psdb.v1alpha1.Database.ExecuteBatch.
+func (c *databaseClient) ExecuteBatch(ctx context.Context, req *connect.Request[v1alpha1.ExecuteBatchRequest]) (*connect.Response[v1alpha1.ExecuteBatchResponse], error) {
+	return c.executeBatch.CallUnary(ctx, req)
 }
 
 // StreamExecute calls psdb.v1alpha1.Database.StreamExecute.
@@ -130,6 +144,7 @@ func (c *databaseClient) CloseSession(ctx context.Context, req *connect.Request[
 type DatabaseHandler interface {
 	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
 	Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error)
+	ExecuteBatch(context.Context, *connect.Request[v1alpha1.ExecuteBatchRequest]) (*connect.Response[v1alpha1.ExecuteBatchResponse], error)
 	StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest], *connect.ServerStream[v1alpha1.ExecuteResponse]) error
 	Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error)
 	CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error)
@@ -149,6 +164,11 @@ func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (str
 	databaseExecuteHandler := connect.NewUnaryHandler(
 		DatabaseExecuteProcedure,
 		svc.Execute,
+		opts...,
+	)
+	databaseExecuteBatchHandler := connect.NewUnaryHandler(
+		DatabaseExecuteBatchProcedure,
+		svc.ExecuteBatch,
 		opts...,
 	)
 	databaseStreamExecuteHandler := connect.NewServerStreamHandler(
@@ -172,6 +192,8 @@ func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (str
 			databaseCreateSessionHandler.ServeHTTP(w, r)
 		case DatabaseExecuteProcedure:
 			databaseExecuteHandler.ServeHTTP(w, r)
+		case DatabaseExecuteBatchProcedure:
+			databaseExecuteBatchHandler.ServeHTTP(w, r)
 		case DatabaseStreamExecuteProcedure:
 			databaseStreamExecuteHandler.ServeHTTP(w, r)
 		case DatabasePrepareProcedure:
@@ -193,6 +215,10 @@ func (UnimplementedDatabaseHandler) CreateSession(context.Context, *connect.Requ
 
 func (UnimplementedDatabaseHandler) Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.Execute is not implemented"))
+}
+
+func (UnimplementedDatabaseHandler) ExecuteBatch(context.Context, *connect.Request[v1alpha1.ExecuteBatchRequest]) (*connect.Response[v1alpha1.ExecuteBatchResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.ExecuteBatch is not implemented"))
 }
 
 func (UnimplementedDatabaseHandler) StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest], *connect.ServerStream[v1alpha1.ExecuteResponse]) error {

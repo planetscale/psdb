@@ -40,6 +40,20 @@ message ExecuteResponse {
   double timing = 4;
 }
 
+message ExecuteBatchRequest {
+  Session session = 1;
+
+  repeated string queries = 2;
+}
+
+message ExecuteBatchResponse {
+  Session session = 1;
+
+  repeated vitess.query.v16.ResultWithError results = 2;
+
+  double timing = 3;
+}
+
 message PrepareRequest {
   Session session = 1;
 
@@ -71,6 +85,7 @@ message Session {
 service Database {
   rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse) {}
   rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
+  rpc ExecuteBatch(ExecuteBatchRequest) returns (ExecuteBatchResponse) {}
   rpc StreamExecute(ExecuteRequest) returns (stream ExecuteResponse) {}
   rpc Prepare(PrepareRequest) returns (PrepareResponse) {}
   rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse) {}
