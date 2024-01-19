@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package psdbconnect.v1alpha1;
 
-import "vitess/query/v16/query.proto";
-import "vitess/vtrpc/v16/vtrpc.proto";
+import "vitess/query/v17/query.proto";
+import "vitess/vtrpc/v17/vtrpc.proto";
 
 option go_package = "github.com/planetscale/psdb/types/psdbconnect/v1alpha1;psdbconnectv1alpha1";
 
@@ -46,25 +46,25 @@ message SyncRequest {
 // DeletedRow denotes a row that is deleted from the table referenced in the SyncRequest
 message DeletedRow {
   // This result will contain only the primary keys from the deleted row.
-  vitess.query.v16.QueryResult result = 1;
+  vitess.query.v17.QueryResult result = 1;
 }
 
 // Updated denotes a row that is updated in the table referenced in the SyncRequest
 message UpdatedRow {
   // All values of the table before the update was made.
-  vitess.query.v16.QueryResult before = 1;
+  vitess.query.v17.QueryResult before = 1;
   // All values of the table ater the update was made.
-  vitess.query.v16.QueryResult after = 2;
+  vitess.query.v17.QueryResult after = 2;
 }
 
 // SyncResponse denotes a response to the SyncRequest
 message SyncResponse {
   // An array of rows that denote inserts into the table.
-  repeated vitess.query.v16.QueryResult result = 1;
+  repeated vitess.query.v17.QueryResult result = 1;
   // A state object to use that denotes the current state of the SyncResponse.
   TableCursor cursor = 2;
   // Any errors encountered in streaming data from the table.
-  vitess.vtrpc.v16.RPCError error = 3;
+  vitess.vtrpc.v17.RPCError error = 3;
   // An array of rows that denote deletes from the table.
   repeated DeletedRow deletes = 4;
   // An array of rows that denote updates to the table.
@@ -85,7 +85,7 @@ message TableCursor {
   // the SyncRequest will fail.
   string position = 3;
   // Any known last known primary key values from the a previous session.
-  vitess.query.v16.QueryResult last_known_pk = 4;
+  vitess.query.v17.QueryResult last_known_pk = 4;
 }
 
 service Connect {
