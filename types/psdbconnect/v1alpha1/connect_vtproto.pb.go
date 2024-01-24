@@ -6,8 +6,8 @@ package psdbconnectv1alpha1
 
 import (
 	fmt "fmt"
-	v16 "github.com/planetscale/vitess-types/gen/vitess/query/v16"
-	v161 "github.com/planetscale/vitess-types/gen/vitess/vtrpc/v16"
+	v17 "github.com/planetscale/vitess-types/gen/vitess/query/v17"
+	v171 "github.com/planetscale/vitess-types/gen/vitess/vtrpc/v17"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	io "io"
@@ -955,7 +955,7 @@ func (m *DeletedRow) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Result == nil {
-				m.Result = &v16.QueryResult{}
+				m.Result = &v17.QueryResult{}
 			}
 			if unmarshal, ok := interface{}(m.Result).(interface {
 				UnmarshalVT([]byte) error
@@ -1050,7 +1050,7 @@ func (m *UpdatedRow) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Before == nil {
-				m.Before = &v16.QueryResult{}
+				m.Before = &v17.QueryResult{}
 			}
 			if unmarshal, ok := interface{}(m.Before).(interface {
 				UnmarshalVT([]byte) error
@@ -1094,7 +1094,7 @@ func (m *UpdatedRow) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.After == nil {
-				m.After = &v16.QueryResult{}
+				m.After = &v17.QueryResult{}
 			}
 			if unmarshal, ok := interface{}(m.After).(interface {
 				UnmarshalVT([]byte) error
@@ -1188,7 +1188,7 @@ func (m *SyncResponse) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Result = append(m.Result, &v16.QueryResult{})
+			m.Result = append(m.Result, &v17.QueryResult{})
 			if unmarshal, ok := interface{}(m.Result[len(m.Result)-1]).(interface {
 				UnmarshalVT([]byte) error
 			}); ok {
@@ -1267,7 +1267,7 @@ func (m *SyncResponse) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Error == nil {
-				m.Error = &v161.RPCError{}
+				m.Error = &v171.RPCError{}
 			}
 			if unmarshal, ok := interface{}(m.Error).(interface {
 				UnmarshalVT([]byte) error
@@ -1526,7 +1526,7 @@ func (m *TableCursor) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.LastKnownPk == nil {
-				m.LastKnownPk = &v16.QueryResult{}
+				m.LastKnownPk = &v17.QueryResult{}
 			}
 			if unmarshal, ok := interface{}(m.LastKnownPk).(interface {
 				UnmarshalVT([]byte) error
