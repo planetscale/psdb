@@ -54,6 +54,17 @@ message PrepareResponse {
   vitess.vtrpc.v16.RPCError error = 3;
 }
 
+message BinlogDumpGTIDRequest {
+  string logFile = 1;
+  uint64 logPos = 2;
+  GTIDSet gtidSet = 3;
+}
+
+message BinlogDumpGTIDResponse {
+  bytes opaque_blob = 1;
+  vitess.vtrpc.v16.RPCError error = 2;
+}
+
 message CloseSessionRequest {
   Session session = 1;
 }
@@ -68,10 +79,16 @@ message Session {
   vitess.vtgate.v16.Session vitess_session = 2;
 }
 
+message GTIDSet {
+  string flavor = 1;
+  string value = 2;
+}
+
 service Database {
   rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse) {}
   rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
   rpc StreamExecute(ExecuteRequest) returns (stream ExecuteResponse) {}
   rpc Prepare(PrepareRequest) returns (PrepareResponse) {}
+  rpc StreamBinlogDumpGTID(BinlogDumpGTIDRequest) returns (stream BinlogDumpGTIDResponse) {}
   rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse) {}
 }

@@ -41,6 +41,9 @@ const (
 	DatabaseStreamExecuteProcedure = "/psdb.v1alpha1.Database/StreamExecute"
 	// DatabasePrepareProcedure is the fully-qualified name of the Database's Prepare RPC.
 	DatabasePrepareProcedure = "/psdb.v1alpha1.Database/Prepare"
+	// DatabaseStreamBinlogDumpGTIDProcedure is the fully-qualified name of the Database's
+	// StreamBinlogDumpGTID RPC.
+	DatabaseStreamBinlogDumpGTIDProcedure = "/psdb.v1alpha1.Database/StreamBinlogDumpGTID"
 	// DatabaseCloseSessionProcedure is the fully-qualified name of the Database's CloseSession RPC.
 	DatabaseCloseSessionProcedure = "/psdb.v1alpha1.Database/CloseSession"
 )
@@ -51,6 +54,7 @@ type DatabaseClient interface {
 	Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error)
 	StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.ServerStreamForClient[v1alpha1.ExecuteResponse], error)
 	Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error)
+	StreamBinlogDumpGTID(context.Context, *connect.Request[v1alpha1.BinlogDumpGTIDRequest]) (*connect.ServerStreamForClient[v1alpha1.BinlogDumpGTIDResponse], error)
 	CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error)
 }
 
@@ -84,6 +88,11 @@ func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 			baseURL+DatabasePrepareProcedure,
 			opts...,
 		),
+		streamBinlogDumpGTID: connect.NewClient[v1alpha1.BinlogDumpGTIDRequest, v1alpha1.BinlogDumpGTIDResponse](
+			httpClient,
+			baseURL+DatabaseStreamBinlogDumpGTIDProcedure,
+			opts...,
+		),
 		closeSession: connect.NewClient[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse](
 			httpClient,
 			baseURL+DatabaseCloseSessionProcedure,
@@ -94,11 +103,12 @@ func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 
 // databaseClient implements DatabaseClient.
 type databaseClient struct {
-	createSession *connect.Client[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse]
-	execute       *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
-	streamExecute *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
-	prepare       *connect.Client[v1alpha1.PrepareRequest, v1alpha1.PrepareResponse]
-	closeSession  *connect.Client[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse]
+	createSession        *connect.Client[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse]
+	execute              *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
+	streamExecute        *connect.Client[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse]
+	prepare              *connect.Client[v1alpha1.PrepareRequest, v1alpha1.PrepareResponse]
+	streamBinlogDumpGTID *connect.Client[v1alpha1.BinlogDumpGTIDRequest, v1alpha1.BinlogDumpGTIDResponse]
+	closeSession         *connect.Client[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse]
 }
 
 // CreateSession calls psdb.v1alpha1.Database.CreateSession.
@@ -121,6 +131,11 @@ func (c *databaseClient) Prepare(ctx context.Context, req *connect.Request[v1alp
 	return c.prepare.CallUnary(ctx, req)
 }
 
+// StreamBinlogDumpGTID calls psdb.v1alpha1.Database.StreamBinlogDumpGTID.
+func (c *databaseClient) StreamBinlogDumpGTID(ctx context.Context, req *connect.Request[v1alpha1.BinlogDumpGTIDRequest]) (*connect.ServerStreamForClient[v1alpha1.BinlogDumpGTIDResponse], error) {
+	return c.streamBinlogDumpGTID.CallServerStream(ctx, req)
+}
+
 // CloseSession calls psdb.v1alpha1.Database.CloseSession.
 func (c *databaseClient) CloseSession(ctx context.Context, req *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error) {
 	return c.closeSession.CallUnary(ctx, req)
@@ -132,6 +147,7 @@ type DatabaseHandler interface {
 	Execute(context.Context, *connect.Request[v1alpha1.ExecuteRequest]) (*connect.Response[v1alpha1.ExecuteResponse], error)
 	StreamExecute(context.Context, *connect.Request[v1alpha1.ExecuteRequest], *connect.ServerStream[v1alpha1.ExecuteResponse]) error
 	Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error)
+	StreamBinlogDumpGTID(context.Context, *connect.Request[v1alpha1.BinlogDumpGTIDRequest], *connect.ServerStream[v1alpha1.BinlogDumpGTIDResponse]) error
 	CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error)
 }
 
@@ -161,6 +177,11 @@ func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (str
 		svc.Prepare,
 		opts...,
 	)
+	databaseStreamBinlogDumpGTIDHandler := connect.NewServerStreamHandler(
+		DatabaseStreamBinlogDumpGTIDProcedure,
+		svc.StreamBinlogDumpGTID,
+		opts...,
+	)
 	databaseCloseSessionHandler := connect.NewUnaryHandler(
 		DatabaseCloseSessionProcedure,
 		svc.CloseSession,
@@ -176,6 +197,8 @@ func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (str
 			databaseStreamExecuteHandler.ServeHTTP(w, r)
 		case DatabasePrepareProcedure:
 			databasePrepareHandler.ServeHTTP(w, r)
+		case DatabaseStreamBinlogDumpGTIDProcedure:
+			databaseStreamBinlogDumpGTIDHandler.ServeHTTP(w, r)
 		case DatabaseCloseSessionProcedure:
 			databaseCloseSessionHandler.ServeHTTP(w, r)
 		default:
@@ -201,6 +224,10 @@ func (UnimplementedDatabaseHandler) StreamExecute(context.Context, *connect.Requ
 
 func (UnimplementedDatabaseHandler) Prepare(context.Context, *connect.Request[v1alpha1.PrepareRequest]) (*connect.Response[v1alpha1.PrepareResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.Prepare is not implemented"))
+}
+
+func (UnimplementedDatabaseHandler) StreamBinlogDumpGTID(context.Context, *connect.Request[v1alpha1.BinlogDumpGTIDRequest], *connect.ServerStream[v1alpha1.BinlogDumpGTIDResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("psdb.v1alpha1.Database.StreamBinlogDumpGTID is not implemented"))
 }
 
 func (UnimplementedDatabaseHandler) CloseSession(context.Context, *connect.Request[v1alpha1.CloseSessionRequest]) (*connect.Response[v1alpha1.CloseSessionResponse], error) {
