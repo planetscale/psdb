@@ -1,4 +1,4 @@
-FROM golang:1.21-bookworm
+FROM golang:1.22-bookworm
 
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y ruby && gem install license_finder && \

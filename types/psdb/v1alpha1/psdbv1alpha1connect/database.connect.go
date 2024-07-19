@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// DatabaseName is the fully-qualified name of the Database service.
@@ -45,6 +45,16 @@ const (
 	DatabaseCloseSessionProcedure = "/psdb.v1alpha1.Database/CloseSession"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	databaseServiceDescriptor             = v1alpha1.File_psdb_v1alpha1_database_proto.Services().ByName("Database")
+	databaseCreateSessionMethodDescriptor = databaseServiceDescriptor.Methods().ByName("CreateSession")
+	databaseExecuteMethodDescriptor       = databaseServiceDescriptor.Methods().ByName("Execute")
+	databaseStreamExecuteMethodDescriptor = databaseServiceDescriptor.Methods().ByName("StreamExecute")
+	databasePrepareMethodDescriptor       = databaseServiceDescriptor.Methods().ByName("Prepare")
+	databaseCloseSessionMethodDescriptor  = databaseServiceDescriptor.Methods().ByName("CloseSession")
+)
+
 // DatabaseClient is a client for the psdb.v1alpha1.Database service.
 type DatabaseClient interface {
 	CreateSession(context.Context, *connect.Request[v1alpha1.CreateSessionRequest]) (*connect.Response[v1alpha1.CreateSessionResponse], error)
@@ -67,27 +77,32 @@ func NewDatabaseClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 		createSession: connect.NewClient[v1alpha1.CreateSessionRequest, v1alpha1.CreateSessionResponse](
 			httpClient,
 			baseURL+DatabaseCreateSessionProcedure,
-			opts...,
+			connect.WithSchema(databaseCreateSessionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		execute: connect.NewClient[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse](
 			httpClient,
 			baseURL+DatabaseExecuteProcedure,
-			opts...,
+			connect.WithSchema(databaseExecuteMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		streamExecute: connect.NewClient[v1alpha1.ExecuteRequest, v1alpha1.ExecuteResponse](
 			httpClient,
 			baseURL+DatabaseStreamExecuteProcedure,
-			opts...,
+			connect.WithSchema(databaseStreamExecuteMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		prepare: connect.NewClient[v1alpha1.PrepareRequest, v1alpha1.PrepareResponse](
 			httpClient,
 			baseURL+DatabasePrepareProcedure,
-			opts...,
+			connect.WithSchema(databasePrepareMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		closeSession: connect.NewClient[v1alpha1.CloseSessionRequest, v1alpha1.CloseSessionResponse](
 			httpClient,
 			baseURL+DatabaseCloseSessionProcedure,
-			opts...,
+			connect.WithSchema(databaseCloseSessionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -144,27 +159,32 @@ func NewDatabaseHandler(svc DatabaseHandler, opts ...connect.HandlerOption) (str
 	databaseCreateSessionHandler := connect.NewUnaryHandler(
 		DatabaseCreateSessionProcedure,
 		svc.CreateSession,
-		opts...,
+		connect.WithSchema(databaseCreateSessionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	databaseExecuteHandler := connect.NewUnaryHandler(
 		DatabaseExecuteProcedure,
 		svc.Execute,
-		opts...,
+		connect.WithSchema(databaseExecuteMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	databaseStreamExecuteHandler := connect.NewServerStreamHandler(
 		DatabaseStreamExecuteProcedure,
 		svc.StreamExecute,
-		opts...,
+		connect.WithSchema(databaseStreamExecuteMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	databasePrepareHandler := connect.NewUnaryHandler(
 		DatabasePrepareProcedure,
 		svc.Prepare,
-		opts...,
+		connect.WithSchema(databasePrepareMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	databaseCloseSessionHandler := connect.NewUnaryHandler(
 		DatabaseCloseSessionProcedure,
 		svc.CloseSession,
-		opts...,
+		connect.WithSchema(databaseCloseSessionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/psdb.v1alpha1.Database/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

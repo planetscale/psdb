@@ -39,14 +39,11 @@ $(BIN)/gofumpt: Makefile | $(BIN)
 $(BIN)/staticcheck: Makefile | $(BIN)
 	$(TOOL_INSTALL) honnef.co/go/tools/cmd/staticcheck@v0.4.6
 
-$(BIN)/enumcheck: Makefile | $(BIN)
-	$(TOOL_INSTALL) loov.dev/enumcheck@v0.0.0-20220314183541-8aa7b787306e
-
 $(BIN)/govulncheck: Makefile | $(BIN)
 	$(TOOL_INSTALL) golang.org/x/vuln/cmd/govulncheck@v1.0.1
 
 $(BIN)/buf: Makefile | $(BIN)
-	$(TOOL_INSTALL) github.com/bufbuild/buf/cmd/buf@v1.28.1
+	$(TOOL_INSTALL) github.com/bufbuild/buf/cmd/buf@v1.48.0
 
 $(BIN)/yq: Makefile | $(BIN)
 	$(TOOL_INSTALL) github.com/mikefarah/yq/v4@v4.30.8
@@ -61,7 +58,6 @@ tools: \
 	$(PROTO_TOOLS) \
 	$(BIN)/gofumpt \
 	$(BIN)/staticcheck \
-	$(BIN)/enumcheck \
 	$(BIN)/govulncheck \
 	$(BIN)/yq
 
@@ -86,7 +82,7 @@ else
 	fd . -t f -e yaml -e yml -x $(BIN)/yq -iP eval-all . {} \;
 endif
 
-lint: lint-vet lint-staticcheck lint-enumcheck lint-govulncheck lint-proto
+lint: lint-vet lint-staticcheck lint-govulncheck lint-proto
 
 lint-vet:
 	go vet ./...
@@ -107,7 +103,7 @@ tests:
 	go test -v ./...
 
 update-proto: $(BIN)/buf
-	$< mod update $(PROTO_SRC)
+	$< dep update $(PROTO_SRC)
 
 push-proto: $(BIN)/buf
 	$< push $(PROTO_SRC)

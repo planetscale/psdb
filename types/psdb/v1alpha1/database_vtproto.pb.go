@@ -8,9 +8,9 @@ import (
 	binary "encoding/binary"
 	fmt "fmt"
 	v1 "github.com/planetscale/psdb/types/psdb/data/v1"
-	v16 "github.com/planetscale/vitess-types/gen/vitess/query/v16"
-	v162 "github.com/planetscale/vitess-types/gen/vitess/vtgate/v16"
-	v161 "github.com/planetscale/vitess-types/gen/vitess/vtrpc/v16"
+	v19 "github.com/planetscale/vitess-types/gen/vitess/query/v19"
+	v192 "github.com/planetscale/vitess-types/gen/vitess/vtgate/v19"
+	v191 "github.com/planetscale/vitess-types/gen/vitess/vtrpc/v19"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	io "io"
@@ -1436,10 +1436,10 @@ func (m *ExecuteRequest) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.BindVariables == nil {
-				m.BindVariables = make(map[string]*v16.BindVariable)
+				m.BindVariables = make(map[string]*v19.BindVariable)
 			}
 			var mapkey string
-			var mapvalue *v16.BindVariable
+			var mapvalue *v19.BindVariable
 			for iNdEx < postIndex {
 				entryPreIndex := iNdEx
 				var wire uint64
@@ -1513,7 +1513,7 @@ func (m *ExecuteRequest) UnmarshalVT(dAtA []byte) error {
 					if postmsgIndex > l {
 						return io.ErrUnexpectedEOF
 					}
-					mapvalue = &v16.BindVariable{}
+					mapvalue = &v19.BindVariable{}
 					if unmarshal, ok := interface{}(mapvalue).(interface {
 						UnmarshalVT([]byte) error
 					}); ok {
@@ -1660,7 +1660,7 @@ func (m *ExecuteResponse) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Result == nil {
-				m.Result = &v16.QueryResult{}
+				m.Result = &v19.QueryResult{}
 			}
 			if unmarshal, ok := interface{}(m.Result).(interface {
 				UnmarshalVT([]byte) error
@@ -1704,7 +1704,7 @@ func (m *ExecuteResponse) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Error == nil {
-				m.Error = &v161.RPCError{}
+				m.Error = &v191.RPCError{}
 			}
 			if unmarshal, ok := interface{}(m.Error).(interface {
 				UnmarshalVT([]byte) error
@@ -1878,10 +1878,10 @@ func (m *PrepareRequest) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.BindVariables == nil {
-				m.BindVariables = make(map[string]*v16.BindVariable)
+				m.BindVariables = make(map[string]*v19.BindVariable)
 			}
 			var mapkey string
-			var mapvalue *v16.BindVariable
+			var mapvalue *v19.BindVariable
 			for iNdEx < postIndex {
 				entryPreIndex := iNdEx
 				var wire uint64
@@ -1955,7 +1955,7 @@ func (m *PrepareRequest) UnmarshalVT(dAtA []byte) error {
 					if postmsgIndex > l {
 						return io.ErrUnexpectedEOF
 					}
-					mapvalue = &v16.BindVariable{}
+					mapvalue = &v19.BindVariable{}
 					if unmarshal, ok := interface{}(mapvalue).(interface {
 						UnmarshalVT([]byte) error
 					}); ok {
@@ -2101,7 +2101,7 @@ func (m *PrepareResponse) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Fields = append(m.Fields, &v16.Field{})
+			m.Fields = append(m.Fields, &v19.Field{})
 			if unmarshal, ok := interface{}(m.Fields[len(m.Fields)-1]).(interface {
 				UnmarshalVT([]byte) error
 			}); ok {
@@ -2144,7 +2144,7 @@ func (m *PrepareResponse) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Error == nil {
-				m.Error = &v161.RPCError{}
+				m.Error = &v191.RPCError{}
 			}
 			if unmarshal, ok := interface{}(m.Error).(interface {
 				UnmarshalVT([]byte) error
@@ -2362,7 +2362,7 @@ func (m *CloseSessionResponse) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Error == nil {
-				m.Error = &v161.RPCError{}
+				m.Error = &v191.RPCError{}
 			}
 			if unmarshal, ok := interface{}(m.Error).(interface {
 				UnmarshalVT([]byte) error
@@ -2491,7 +2491,7 @@ func (m *Session) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.VitessSession == nil {
-				m.VitessSession = &v162.Session{}
+				m.VitessSession = &v192.Session{}
 			}
 			if unmarshal, ok := interface{}(m.VitessSession).(interface {
 				UnmarshalVT([]byte) error

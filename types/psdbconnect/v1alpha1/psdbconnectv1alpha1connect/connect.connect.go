@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// ConnectName is the fully-qualified name of the Connect service.
@@ -35,6 +35,12 @@ const (
 const (
 	// ConnectSyncProcedure is the fully-qualified name of the Connect's Sync RPC.
 	ConnectSyncProcedure = "/psdbconnect.v1alpha1.Connect/Sync"
+)
+
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	connectServiceDescriptor    = v1alpha1.File_psdbconnect_v1alpha1_connect_proto.Services().ByName("Connect")
+	connectSyncMethodDescriptor = connectServiceDescriptor.Methods().ByName("Sync")
 )
 
 // ConnectClient is a client for the psdbconnect.v1alpha1.Connect service.
@@ -61,7 +67,8 @@ func NewConnectClient(httpClient connect.HTTPClient, baseURL string, opts ...con
 		sync: connect.NewClient[v1alpha1.SyncRequest, v1alpha1.SyncResponse](
 			httpClient,
 			baseURL+ConnectSyncProcedure,
-			opts...,
+			connect.WithSchema(connectSyncMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -96,7 +103,8 @@ func NewConnectHandler(svc ConnectHandler, opts ...connect.HandlerOption) (strin
 	connectSyncHandler := connect.NewServerStreamHandler(
 		ConnectSyncProcedure,
 		svc.Sync,
-		opts...,
+		connect.WithSchema(connectSyncMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/psdbconnect.v1alpha1.Connect/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
