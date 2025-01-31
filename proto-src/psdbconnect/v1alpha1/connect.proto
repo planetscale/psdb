@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package psdbconnect.v1alpha1;
 
+import "vitess/binlogdata/v19/binlogdata.proto";
 import "vitess/query/v19/query.proto";
 import "vitess/vtrpc/v19/vtrpc.proto";
 
@@ -69,6 +70,7 @@ message SyncResponse {
   repeated DeletedRow deletes = 4;
   // An array of rows that denote updates to the table.
   repeated UpdatedRow updates = 5;
+  vitess.binlogdata.v19.VEventType type = 6;
 }
 
 // TableCursor denotes state of a Sync request to a table.
