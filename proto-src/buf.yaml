@@ -7,7 +7,7 @@ breaking:
     - FILE
 lint:
   use:
-    - DEFAULT
+    - STANDARD
   except:
     - ENUM_VALUE_UPPER_SNAKE_CASE
     - ENUM_VALUE_PREFIX

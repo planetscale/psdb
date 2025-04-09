@@ -1,20 +1,21 @@
 module github.com/planetscale/psdb
 
-go 1.22
+go 1.24
 
 require (
-	connectrpc.com/connect v1.14.0
+	connectrpc.com/connect v1.18.1
 	github.com/klauspost/connect-compress/v2 v2.0.0
-	github.com/planetscale/vitess-types v0.0.0-20250102225031-46661e124a3a
+	github.com/planetscale/vitess-types v0.0.0-20250409004758-020920d5ec5a
+	github.com/planetscale/vtprotobuf v0.6.0
 	github.com/segmentio/asm v1.2.0
-	github.com/stretchr/testify v1.7.0
-	google.golang.org/protobuf v1.34.2
+	github.com/stretchr/testify v1.8.4
+	google.golang.org/protobuf v1.35.1
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
