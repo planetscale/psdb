@@ -37,12 +37,6 @@ const (
 	ConnectSyncProcedure = "/psdbconnect.v1alpha1.Connect/Sync"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	connectServiceDescriptor    = v1alpha1.File_psdbconnect_v1alpha1_connect_proto.Services().ByName("Connect")
-	connectSyncMethodDescriptor = connectServiceDescriptor.Methods().ByName("Sync")
-)
-
 // ConnectClient is a client for the psdbconnect.v1alpha1.Connect service.
 type ConnectClient interface {
 	// Sync will continuously stream data from a PlanetScale database given a table, keyspace and shard.
@@ -63,11 +57,12 @@ type ConnectClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewConnectClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) ConnectClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	connectMethods := v1alpha1.File_psdbconnect_v1alpha1_connect_proto.Services().ByName("Connect").Methods()
 	return &connectClient{
 		sync: connect.NewClient[v1alpha1.SyncRequest, v1alpha1.SyncResponse](
 			httpClient,
 			baseURL+ConnectSyncProcedure,
-			connect.WithSchema(connectSyncMethodDescriptor),
+			connect.WithSchema(connectMethods.ByName("Sync")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -100,10 +95,11 @@ type ConnectHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewConnectHandler(svc ConnectHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	connectMethods := v1alpha1.File_psdbconnect_v1alpha1_connect_proto.Services().ByName("Connect").Methods()
 	connectSyncHandler := connect.NewServerStreamHandler(
 		ConnectSyncProcedure,
 		svc.Sync,
-		connect.WithSchema(connectSyncMethodDescriptor),
+		connect.WithSchema(connectMethods.ByName("Sync")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/psdbconnect.v1alpha1.Connect/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
