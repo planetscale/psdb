@@ -4,5 +4,5 @@ deps:
   - remote: buf.build
     owner: planetscale
     repository: vitess
-    commit: 4cad49e0382a4a21a13e508cb3dbf701
-    digest: shake256:8c04095a096df6a86b5229a88fc9188a03f02dc7772b1a2c05c1902216cb6139139e8bd279e66f5ef2d184de12476ac78954a869a9d50db1d944abbba72163fb
+    commit: 5b7c5f01d66e46969fcc8b4fee3ba31c
+    digest: shake256:e2c076e176ffc9adc554e03d5dae5fbdea6131a888eb891072d480d0d33da2851861e55fdbcd89552550f103d3471efe7a2383e81546fb70492ea9474e8499e8

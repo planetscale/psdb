@@ -1,15 +1,15 @@
 module github.com/planetscale/psdb
 
-go 1.24
+go 1.24.5
 
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/klauspost/connect-compress/v2 v2.0.0
-	github.com/planetscale/vitess-types v0.0.0-20250409004758-020920d5ec5a
-	github.com/planetscale/vtprotobuf v0.6.0
+	github.com/planetscale/vitess-types v0.0.0-20260313221731-c96dbf730f7d
+	github.com/planetscale/vtprotobuf v0.6.1-0.20241121165744-79df5c4772f2
 	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.8.4
-	google.golang.org/protobuf v1.35.1
+	google.golang.org/protobuf v1.36.5
 )
 
 require (
