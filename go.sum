@@ -8,8 +8,8 @@ github.com/klauspost/compress v1.16.7 h1:2mk3MPGNzKyxErAw8YaohYh69+pa4sIQSC0fPGC
 github.com/klauspost/compress v1.16.7/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/klauspost/connect-compress/v2 v2.0.0 h1:L7TVsLa6Oo9Hkkb6r3DwSrhBbcWlXjneqBj7fCRXviU=
 github.com/klauspost/connect-compress/v2 v2.0.0/go.mod h1:604CD9JSAjGqtVzCM4SRgM/9TFTkWBcp+2wlQfGyJ6c=
-github.com/planetscale/vitess-types v0.0.0-20260313221731-c96dbf730f7d h1:6r2nVRGJSg9RJ6Et6PthIjYNzMG+zJM8RmZxX8l6zTU=
-github.com/planetscale/vitess-types v0.0.0-20260313221731-c96dbf730f7d/go.mod h1:TArDr1Y/xRBA4DCA8f2dY0hV+Y8E4JcCvZ61RLgXL5E=
+github.com/planetscale/vitess-types v0.0.0-20260414192014-2cd470a9b3d5 h1:3d2wfz57sb5Q8/LHuXd1Cpj0OI5E3tnD5fakrG2mJk0=
+github.com/planetscale/vitess-types v0.0.0-20260414192014-2cd470a9b3d5/go.mod h1:TArDr1Y/xRBA4DCA8f2dY0hV+Y8E4JcCvZ61RLgXL5E=
 github.com/planetscale/vtprotobuf v0.6.1-0.20241121165744-79df5c4772f2 h1:1sLMdKq4gNANTj0dUibycTLzpIEKVnLnbaEkxws78nw=
 github.com/planetscale/vtprotobuf v0.6.1-0.20241121165744-79df5c4772f2/go.mod h1:t/avpk3KcrXxUnYOhZhMXJlSEyie6gQbtLq5NM3loB8=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

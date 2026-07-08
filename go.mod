@@ -5,7 +5,7 @@ go 1.24.5
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/klauspost/connect-compress/v2 v2.0.0
-	github.com/planetscale/vitess-types v0.0.0-20260313221731-c96dbf730f7d
+	github.com/planetscale/vitess-types v0.0.0-20260414192014-2cd470a9b3d5
 	github.com/planetscale/vtprotobuf v0.6.1-0.20241121165744-79df5c4772f2
 	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.8.4
