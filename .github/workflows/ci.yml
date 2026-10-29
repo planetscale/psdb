@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Tests
+            command: make tests
+          - name: Formatting
+            command: make clean-proto && make proto && make fmt && git diff --exit-code
+          - name: go.mod tidy
+            command: go mod tidy && git diff --exit-code
+          - name: Lint
+            command: make lint
+          - name: Verify dependency licenses
+            command: license_finder
+
+    env:
+      DOCKER_BUILDKIT: "1"
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run ${{ matrix.name }}
+        run: |
+          docker compose run --rm --build ci sh -c '
+            git config --global --add safe.directory "$PWD"
+
+            ${{ matrix.command }}
+          '
