@@ -1,0 +1,8 @@
+services:
+  ci:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    volumes:
+      - .:/src
+    working_dir: /src
