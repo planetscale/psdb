@@ -27,8 +27,8 @@ TOOL_INSTALL := env GOBIN=$(PWD)/$(BIN) go install
 $(BIN)/protoc-gen-go: go.mod | $(BIN)
 	$(TOOL_INSTALL) google.golang.org/protobuf/cmd/protoc-gen-go
 
-$(BIN)/protoc-gen-go-vtproto: Makefile | $(BIN)
-	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@v0.6.0
+$(BIN)/protoc-gen-go-vtproto: go.mod | $(BIN)
+	$(TOOL_INSTALL) github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto
 
 $(BIN)/protoc-gen-connect-go: go.mod | $(BIN)
 	$(TOOL_INSTALL) connectrpc.com/connect/cmd/protoc-gen-connect-go
