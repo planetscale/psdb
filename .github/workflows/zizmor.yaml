@@ -1,0 +1,32 @@
+name: zizmor
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    paths:
+      - '.github/**'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  zizmor:
+    name: zizmor audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+        with:
+          inputs: .
+          persona: regular
+          version: "1.25.2"
+          # Fail the job directly instead of uploading SARIF to code scanning.
+          advanced-security: false
+          annotations: true
